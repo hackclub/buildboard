@@ -44,14 +44,12 @@
 <div>
     <a href="/whiteboard/gallery" class="fixed top-12 right-12 z-50">
         <div class="flex flex-col items-center gap-2">
-            <img src="/arrow.jpg" alt="Up Arrow" class="w-16 md:w-20 -rotate-90"/>
             <p class="text-3xl font-semibold">Up to Gallery</p>
         </div>
     </a>
     <a href="/whiteboard/week/1&2" class="fixed bottom-12 right-12 z-50">
         <div class="flex flex-col items-center gap-2 ">
             <p class="text-3xl font-semibold">Down to Week 1&2</p>
-            <img src="/arrow.jpg" alt="Down Arrow" class="w-16 md:w-20 rotate-90" />
         </div>
     </a>
 </div>
@@ -77,19 +75,11 @@
         
         {#if data.projects.length === 0}
             <p class="{mediumSize ? 'text-xl' : 'text-3xl'} text-neutral-600">No projects</p>
-            <img src="/orpheuscry.png" alt="No Projects" class="w-48 mt-4" />
         {:else}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {#each data.projects.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3) as project}
                     <div class="block {mediumSize ? 'max-w-sm' : ''}">
                         <div class="rounded-lg shadow-lg overflow-hidden hover:scale-105 relative">
-                            <a href={project.live_url} target="_blank" rel="noopener noreferrer">
-                                {#if project.attachment_urls && project.attachment_urls.length > 0}
-                                    <img src={project.attachment_urls[0]} alt={project.project_name} class="w-full {mediumSize ? 'h-24' : 'h-48'} object-cover" />
-                                {:else}
-                                    <img src="/orpheuscry.png" alt={project.project_name} class="w-full {mediumSize ? 'h-24' : 'h-48'} object-cover" />
-                                {/if}
-                            </a>
                             <div class="{mediumSize ? 'p-2 pb-10' : 'p-4 pb-12'}">
                                 <a href={project.live_url} target="_blank" rel="noopener noreferrer">
                                     <h3 class="{mediumSize ? 'text-sm' : 'text-xl'} font-bold text-neutral-800 mb-2">{project.project_name}</h3>
@@ -98,7 +88,7 @@
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 class="absolute right-10 hover:scale-110 {mediumSize ? 'text-xs' : 'text-sm'}"
-                            ><img src="/repo.png" alt="repo link" class="w-20"/></a>
+                            >Code</a>
                                 <p class="{mediumSize ? 'text-xs' : 'text-sm'} text-neutral-600">Time spent: {Math.floor(project.time_spent / 60)}h {project.time_spent % 60}m</p>
                                 <p class="{mediumSize ? 'text-[10px]' : 'text-xs'} text-neutral-500 mt-1">Week {project.submission_week}</p>
                                 
@@ -119,6 +109,5 @@
 <h2 class="text-2xl font-bold mb-10">If you have, acknowledge this:</h2>
 <p class="text-2xl font-pangolin px-20">Don’t cheat the time tracking system. No bots, no fake key presses, no UI manipulation. If you do, you’ll be banned from Hackatime and other participating YSWS / events / programs</p>
 <button onclick={acknowledgeHackatime} class="bg-green-700/50 px-10 py-2 text-2xl rounded-xl hover:scale-105 hover:bg-green-700/30 hover:cursor-pointer mt-10 mb-5 hover:underline"><p>I agree</p></button>
-<img src="/please.gif" alt="Pwease" class="w-48 mx-auto mt-10"/>
 </div>
 {/if}

@@ -116,21 +116,6 @@
 	});
 </script>
 
-<div>
-	<a href="/whiteboard/leaderboard" class="fixed top-12 right-12 z-50">
-		<div class="flex flex-col items-center gap-2">
-			<img src="/arrow.jpg" alt="Up Arrow" class="w-16 md:w-20 -rotate-90"/>
-			<p class="text-3xl font-semibold">Up to Leaderboard</p>
-		</div>
-	</a>
-	<a href="/whiteboard/" class="fixed bottom-12 right-12 z-50">
-		<div class="flex flex-col items-center gap-2">
-			<p class="text-3xl font-semibold">Down to Whiteboard</p>
-			<img src="/arrow.jpg" alt="Down Arrow" class="w-16 md:w-20 rotate-90" />
-		</div>
-	</a>
-</div>
-
 <section class="min-h-screen mt-40 px-8 relative z-10">
 
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -142,11 +127,6 @@
 			<div class="h-full flex">
 				<ProfileCard>
 					<a href={project.live_url} onclick={(e) => openIframe(project.live_url, e)} class="block">
-						{#if project.attachment_urls && project.attachment_urls.length > 0}
-							<img src={project.attachment_urls[0]} alt={project.project_name} class="mb-4 rounded-lg shadow-lg w-full h-48 object-cover" />
-						{:else}
-							<img src="/orpheuscry.png" alt={project.project_name} class="mb-4 rounded-lg shadow-lg w-full h-48 object-cover" />
-						{/if}
 						<h2 class="text-3xl font-medium mb-2 text-neutral-600">{project.project_name}</h2>
 					</a>
 					
@@ -192,11 +172,6 @@
 				X
 			</button>
 			<div class="expanded-content">
-				{#if expandedProject.attachment_urls && expandedProject.attachment_urls.length > 0}
-					<img src={expandedProject.attachment_urls[0]} alt={expandedProject.project_name} class="w-full h-64 object-cover rounded-lg mb-6" />
-				{:else}
-					<img src="/orpheuscry.png" alt={expandedProject.project_name} class="w-full h-64 object-cover rounded-lg mb-6" />
-				{/if}
 				<h2 class="text-4xl font-bold mb-4 text-neutral-800">{expandedProject.project_name}</h2>
 				<p class="text-xl text-neutral-700 font-pangolin mb-6 whitespace-pre-wrap">{expandedProject.project_description || 'No description'}</p>
 				<div class="flex gap-6 items-center flex-wrap border-t pt-4 border-neutral-300">
