@@ -41,35 +41,7 @@
     });
 </script>
 {#if hackatimeAcknowledged}
-<div>
-    <a href="/whiteboard/gallery" class="fixed top-12 right-12 z-50">
-        <div class="flex flex-col items-center gap-2">
-            <p class="text-3xl font-semibold">Up to Gallery</p>
-        </div>
-    </a>
-    <a href="/whiteboard/week/1&2" class="fixed bottom-12 right-12 z-50">
-        <div class="flex flex-col items-center gap-2 ">
-            <p class="text-3xl font-semibold">Down to Week 1&2</p>
-        </div>
-    </a>
-</div>
-
 <div class="container mx-auto pt-30">
-    <h1 class="{mediumSize ? 'text-3xl' : 'text-8xl'} md:text-7xl font-bold text-neutral-700 mb-6">Welcome to Accelerate!!</h1>
-    <h2 class="{mediumSize ? 'text-xl' : 'text-2xl'} md:text-3xl font-semibold text-neutral-700 mb-4">The <u>First</u> Physics Based YSWS</h2>
-    <h3 class="{mediumSize ? 'text-xl' : 'text-2xl'} md:text-2xl font-medium text-neutral-700 mb-3">
-        So what are the prizes?
-        <ul class="px-12 list-inside {mediumSize ? 'text-md' : 'text-xl'}">
-            <li>1st: <a href="https://www.apple.com/macbook-pro/" class="underline hover:text-neutral-400">M5 Macbook Pro</a> or a Ticket to the <a href="https://summit.aps.org/" class="underline hover:text-neutral-400">APS Global Physics Summit</a></li>
-            <li>2nd: <a href="https://www.apple.com/macbook-air/" class="underline hover:text-neutral-400">M4 Macbook Air</a></li>
-            <li>3rd: <a href="https://www.apple.com/ipad-air/" class="underline hover:text-neutral-400">M3 iPad Air</a> or <a href="https://www.apple.com/mac-mini/" class="underline hover:text-neutral-400">M4 Mac Mini</a></li>
-            <li>4th - 10th: <a href="https://www.casio.com/us/scientific-calculators/product.FX-CG50/" class="underline hover:text-neutral-400">Casio FX-CG50 Graphing Calculator</a></li>
-            <li>11th-20th: <a href="https://www.solidworks.com/product/students" class="underline hover:text-neutral-400">A Year Long Solidworks Subscription</a></li>
-            <li>Everyone: A Physics Themed Sticker Sheet and Hack Club Ruler!</li>
-        </ul>
-    </h3>
-
-    <!-- Project Gallery -->
     <div class="mt-3">
         <h2 class="{mediumSize ? 'text-3xl' : 'text-5xl'} font-bold text-neutral-700 mb-1">Your Recent Projects</h2>
         
@@ -109,5 +81,6 @@
 <h2 class="text-2xl font-bold mb-10">If you have, acknowledge this:</h2>
 <p class="text-2xl font-pangolin px-20">Don’t cheat the time tracking system. No bots, no fake key presses, no UI manipulation. If you do, you’ll be banned from Hackatime and other participating YSWS / events / programs</p>
 <button onclick={acknowledgeHackatime} class="bg-green-700/50 px-10 py-2 text-2xl rounded-xl hover:scale-105 hover:bg-green-700/30 hover:cursor-pointer mt-10 mb-5 hover:underline"><p>I agree</p></button>
+<img src="/please.gif" alt="Pwease" class="w-48 mx-auto mt-10"/>
 </div>
 {/if}

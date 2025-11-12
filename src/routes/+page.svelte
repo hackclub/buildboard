@@ -41,17 +41,15 @@
 {#if mobileLayout}
 <div>
     <div class="mobile-image">
-        <div class="center-box">
-            <button class="go-button">lets go</button>
-        </div>
+        <div class="button-background"></div>
+        <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
     </div>
     <div class="mobile-section"></div>
 </div>
 {:else}
 <div class="background">
-    <div class="center-box">
-        <button class="go-button">lets go</button>
-    </div>
+    <div class="button-background"></div>
+    <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
 </div>
 {/if}
 
@@ -80,19 +78,32 @@
         min-height: 50vh;
     }
 
-    .center-box {
+    .button-background {
         position: absolute;
-        top: 1000px;
+        top: 70%;
         left: 50%;
-        transform: translateX(-50%);
-        background-color: rgba(0, 0, 0, 0.8);
-        padding: 2rem;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 1);
+        padding: 10rem;
         border-radius: 8px;
+        z-index: -1;
     }
 
     .go-button {
+        position: absolute;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         padding: 1rem 2rem;
         font-size: 1.5rem;
         cursor: pointer;
+        color: white;
+        z-index: 1;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .mobile-image .go-button {
+        font-size: 1rem;
     }
 </style>
