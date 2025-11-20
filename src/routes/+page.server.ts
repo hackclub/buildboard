@@ -1,6 +1,7 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad, Actions } from './$types';
 import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
 import { createDecipheriv } from 'crypto';
+import { fail } from '@sveltejs/kit';
 
 function unhashUserID(hashedUserID: string): string {
     const parts = hashedUserID.split(':');
@@ -11,6 +12,52 @@ function unhashUserID(hashedUserID: string): string {
     decrypted += decipher.final('utf8');
     return decrypted;
 }
+
+export const actions: Actions = {
+    rsvp: async ({ request, getClientAddress }) => {
+        const data = await request.formData();
+        const email = data.get('email')?.toString();
+        const ip_address = getClientAddress();
+
+        if (!email) {
+            return fail(400, { missing: true });
+        }
+
+        try {
+            console.log(`New RSVP attempt: ${email} from ${ip_address}`);
+            
+            const response = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `${BEARER_TOKEN_BACKEND}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    ip_address
+                })
+            });
+
+            if (response.status === 422) {
+                return fail(422, { message: 'Too many requests' });
+            }
+
+            const result = await response.json();
+
+            if (response.ok) {
+                if (result.message === 'collisions detected') {
+                    return { success: true, collision: true };
+                }
+                return { success: true };
+            } else {
+                return fail(response.status, { message: result.message || 'Something went wrong' });
+            }
+        } catch (error) {
+            console.error('RSVP error:', error);
+            return fail(500, { message: 'Internal server error' });
+        }
+    }
+};
 
 export const load: PageServerLoad = async ({ cookies }) => {
     const hashedUserID = cookies.get('userID');
