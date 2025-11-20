@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  security_audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Audit dependencies
+        # Fail if there are any high or critical vulnerabilities
+        run: npm audit --audit-level=high
+
+  type_check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types
+        # Requires env vars for $env/static imports
+        env:
+          BACKEND_DOMAIN_NAME: "example.com"
+          BEARER_TOKEN_BACKEND: "dummy_token"
+          ENCRYPTION_KEY: "dummy_key"
+          HC_OAUTH_CLIENT_SECRET: "dummy_secret"
+          SLACK_CLIENT_SECRET: "dummy_slack_secret"
+          PUBLIC_HC_OAUTH_CLIENT_ID: "dummy_id"
+          PUBLIC_HC_OAUTH_REDIRECT_URL: "http://localhost/callback"
+          PUBLIC_HC_OAUTH_RESPONSE_TYPE: "code"
+          PUBLIC_SLACK_CLIENT_ID: "dummy_slack_id"
+          PUBLIC_SLACK_OAUTH_STATE: "dummy_state"
+          PUBLIC_SLACK_OAUTH_NONCE: "dummy_nonce"
+          PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
+        run: npm run check
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        # Requires env vars for $env/static imports to be baked in
+        env:
+          BACKEND_DOMAIN_NAME: "example.com"
+          BEARER_TOKEN_BACKEND: "dummy_token"
+          ENCRYPTION_KEY: "dummy_key"
+          HC_OAUTH_CLIENT_SECRET: "dummy_secret"
+          SLACK_CLIENT_SECRET: "dummy_slack_secret"
+          PUBLIC_HC_OAUTH_CLIENT_ID: "dummy_id"
+          PUBLIC_HC_OAUTH_REDIRECT_URL: "http://localhost/callback"
+          PUBLIC_HC_OAUTH_RESPONSE_TYPE: "code"
+          PUBLIC_SLACK_CLIENT_ID: "dummy_slack_id"
+          PUBLIC_SLACK_OAUTH_STATE: "dummy_state"
+          PUBLIC_SLACK_OAUTH_NONCE: "dummy_nonce"
+          PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
+        run: npm run build
