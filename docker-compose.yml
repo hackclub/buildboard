@@ -1,0 +1,9 @@
+version: '3'
+services:
+  buildboard:
+    build: .
+    network_mode: host
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
