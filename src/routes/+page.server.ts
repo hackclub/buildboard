@@ -50,6 +50,7 @@ export const actions: Actions = {
                 }
                 return { success: true };
             } else {
+                console.error('RSVP backend failed:', response.status, result);
                 return fail(response.status, { message: result.message || 'Something went wrong' });
             }
         } catch (error) {

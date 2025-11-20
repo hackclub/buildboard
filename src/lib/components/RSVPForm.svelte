@@ -4,10 +4,14 @@
     let { message = $bindable(null), isHovered = $bindable(false) } = $props();
     /** @type {any} */
     let timeoutId;
+    let submitting = $state(false);
 
     const handleSubmit = () => {
+        submitting = true;
         /** @param {{ result: import('@sveltejs/kit').ActionResult }} param0 */
         return async ({ result }) => {
+            submitting = false;
+            console.log('RSVP Result:', result);
             if (timeoutId) clearTimeout(timeoutId);
 
             if (result.type === 'failure') {
@@ -25,6 +29,8 @@
                 } else {
                     message = { text: 'it was successful', type: 'success' };
                 }
+            } else if (result.type === 'error') {
+                message = { text: 'An unexpected error occurred', type: 'error' };
             }
             
             if (message) {
@@ -39,12 +45,13 @@
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
-            <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input text-white" />
+            <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input text-white" disabled={submitting} />
             <button 
                 type="submit" 
                 class="submit-button"
                 onmouseenter={() => isHovered = true}
                 onmouseleave={() => isHovered = false}
+                disabled={submitting}
             >submit </button>
         </div>
     </form>
@@ -120,6 +127,10 @@
 
     .submit-button:active {
         transform: rotate(2deg) skewX(2deg) translateY(3px) scale(0.98);
+    }
+
+    .submit-button:disabled {
+        cursor: not-allowed;
     }
 
     /* Responsive adjustments */
