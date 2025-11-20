@@ -32,11 +32,12 @@
 
     let tooSmall = $derived(innerWidth < 1610 || innerHeight < 765);
     let smallLayout = $derived(innerWidth > 1200 && innerWidth < 1246);
-    let mobileLayout = $derived(innerWidth <= 1200);
+    // Mobile check removed, we use the unified stage for everyone
+    // let mobileLayout = $derived(innerWidth <= 1200); 
 
     let hcaRedirect = `https://hca.dinosaurbbq.org/oauth/authorize?client_id=${PUBLIC_HC_OAUTH_CLIENT_ID}&redirect_uri=${PUBLIC_HC_OAUTH_REDIRECT_URL}&response_type=${PUBLIC_HC_OAUTH_RESPONSE_TYPE}&scope=email`;
     let slackRedirect = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${PUBLIC_SLACK_CLIENT_ID}&state=${PUBLIC_SLACK_OAUTH_STATE}&nonce=${PUBLIC_SLACK_OAUTH_NONCE}&redirect_uri=${PUBLIC_SLACK_REDIRECT_URI}`
-
+    
     onMount(() => {
         document.title = "Buildboard - build, present, repeat";
         
@@ -56,19 +57,8 @@
     });
 </script>
 
-{#if mobileLayout}
-<div>
-    <div class="mobile-image">
-        <div class="button-background"></div>
-        <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
-        <div class="mobile-form-container">
-            <RSVPForm />
-        </div>
-    </div>
-    <div class="mobile-section"></div>
-</div>
-{:else}
-<div class="desktop-viewport">
+<!-- Unified Viewport for all devices -->
+<div class="viewport">
     <!-- The Stage: Scaled to mimic 'cover', centered. Content anchored here moves with the image. -->
     <div class="stage" style="width: {stageWidth}px; height: {stageHeight}px;">
         <!-- Background Layers -->
@@ -80,17 +70,16 @@
             <RSVPForm />
         </div>
 
-        <div class="anchored-button-wrapper">
+        <!-- <div class="anchored-button-wrapper">
             <div class="button-background"></div>
             <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
-        </div>
+        </div> -->
     </div>
 </div>
-{/if}
 
 <style>
-    /* DESKTOP STYLES */
-    .desktop-viewport {
+    /* VIEWPORT STYLES (Unified) */
+    .viewport {
         width: 100vw;
         height: 100vh;
         overflow: hidden;
@@ -100,6 +89,11 @@
         align-items: flex-start; /* Align top so top is never cut off */
         justify-content: center;
     }
+    
+    /* ... rest of desktop styles ... */
+    
+    /* Remove old mobile styles or just leave them unused for now */
+
 
     .stage {
         position: relative;
