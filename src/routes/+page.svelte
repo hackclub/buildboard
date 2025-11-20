@@ -1,11 +1,18 @@
 <script>
     import { onMount } from 'svelte';
     import { page } from '$app/state';
+    import { fade } from 'svelte/transition';
+    import { useFlag } from '@unleash/proxy-client-svelte';
     import { PUBLIC_HC_OAUTH_CLIENT_ID, PUBLIC_HC_OAUTH_REDIRECT_URL, PUBLIC_HC_OAUTH_RESPONSE_TYPE, PUBLIC_SLACK_CLIENT_ID, PUBLIC_SLACK_OAUTH_STATE, PUBLIC_SLACK_OAUTH_NONCE, PUBLIC_SLACK_REDIRECT_URI } from '$env/static/public';
     import RSVPForm from '$lib/components/RSVPForm.svelte';
 
     let innerHeight = $state(0);
     let innerWidth = $state(0);
+    
+    /** @type {{ text: string, type: 'success' | 'error' } | null} */
+    let message = $state(null);
+    
+    const showSlackButton = useFlag('show-slack-button');
     
     // Image dimensions
     const IMG_W = 3100;
@@ -69,14 +76,22 @@
 
         <!-- Anchored Content -->
         <div class="anchored-form">
-            <RSVPForm bind:isHovered={submitHovered} />
+            <RSVPForm bind:message bind:isHovered={submitHovered} />
         </div>
 
-        <!-- <div class="anchored-button-wrapper">
+        {#if $showSlackButton}
+        <div class="anchored-button-wrapper">
             <div class="button-background"></div>
             <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
-        </div> -->
+        </div>
+        {/if}
     </div>
+
+    {#if message}
+        <div transition:fade class="message-toast {message.type}">
+            {message.text}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -198,16 +213,17 @@
     }
 
     /* Mobile overrides for button wrapper which is not inside .stage */
+    /*
     .mobile-image .button-background {
         position: absolute;
         top: 70%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: transparent; /* Transparent */
+        background-color: transparent;
         padding: 10rem;
         border-radius: 8px;
         z-index: 0;
-        display: none; /* Hide it */
+        display: none; 
     }
     
     .mobile-image .go-button {
@@ -218,15 +234,30 @@
         transform: translate(-50%, -50%);
         z-index: 1;
     }
+    */
 
-    .mobile-form-container {
-        position: absolute;
-        top: 85%;
+    .message-toast {
+        position: fixed;
+        bottom: 2rem;
         left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        z-index: 2;
-        display: flex;
-        justify-content: center;
+        transform: translateX(-50%);
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        font-weight: bold;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .message-toast.success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+    }
+
+    .message-toast.error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
     }
 </style>

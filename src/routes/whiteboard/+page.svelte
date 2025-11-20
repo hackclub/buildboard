@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
+    import type { PageData } from './$types';
     
-    let { data } = $props();
+    let { data }: { data: PageData } = $props();
     
     let innerWidth = $state(0);
     let innerHeight = $state(0);
@@ -14,10 +15,10 @@
         document.cookie = "hackatimeAcknowledged=true; path=/; max-age=" + (30 * 24 * 60 * 60);
     }
 
-    function getCookie(name) {
+    function getCookie(name: string) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
         return null;
     }
 
@@ -49,7 +50,7 @@
             <p class="{mediumSize ? 'text-xl' : 'text-3xl'} text-neutral-600">No projects</p>
         {:else}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {#each data.projects.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3) as project}
+                {#each data.projects.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3) as project}
                     <div class="block {mediumSize ? 'max-w-sm' : ''}">
                         <div class="rounded-lg shadow-lg overflow-hidden hover:scale-105 relative">
                             <div class="{mediumSize ? 'p-2 pb-10' : 'p-4 pb-12'}">

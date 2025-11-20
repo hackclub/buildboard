@@ -1,23 +1,42 @@
 <script>
     import { enhance } from '$app/forms';
 
-    let { isHovered = $bindable(false) } = $props();
+    let { message = $bindable(null), isHovered = $bindable(false) } = $props();
+    /** @type {any} */
+    let timeoutId;
+    let submitting = $state(false);
 
     const handleSubmit = () => {
+        submitting = true;
+        /** @param {{ result: import('@sveltejs/kit').ActionResult }} param0 */
         return async ({ result }) => {
+            submitting = false;
+            console.log('RSVP Result:', result);
+            if (timeoutId) clearTimeout(timeoutId);
+
             if (result.type === 'failure') {
                 if (result.status === 422) {
-                    alert('Too many requests');
+                    message = { text: 'Too many requests', type: 'error' };
                 } else {
-                    alert(result.data?.message || 'Error');
+                    // @ts-ignore
+                    message = { text: result.data?.message || 'Error', type: 'error' };
                 }
             } else if (result.type === 'success') {
                 console.log('New RSVP sent');
+                // @ts-ignore
                 if (result.data?.collision) {
-                    alert("email already rsvp'd");
+                    message = { text: "you've already done it", type: 'error' };
                 } else {
-                    alert('RSVP successful!');
+                    message = { text: 'it was successful', type: 'success' };
                 }
+            } else if (result.type === 'error') {
+                message = { text: 'An unexpected error occurred', type: 'error' };
+            }
+            
+            if (message) {
+                timeoutId = setTimeout(() => {
+                    message = null;
+                }, 3000);
             }
         };
     };
@@ -26,12 +45,13 @@
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
-            <input type="email" name="email" placeholder="your email" required class="email-input text-white" />
+            <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input text-white" disabled={submitting} />
             <button 
                 type="submit" 
                 class="submit-button"
                 onmouseenter={() => isHovered = true}
                 onmouseleave={() => isHovered = false}
+                disabled={submitting}
             >submit </button>
         </div>
     </form>
@@ -44,6 +64,7 @@
         max-width: 25rem; /* Reduced width */
         padding: 0 1rem;  /* Prevent touching edges on small screens */
         box-sizing: border-box;
+        position: relative;
     }
 
     /* The wrapper uses Flexbox to align input and button */
@@ -106,6 +127,10 @@
 
     .submit-button:active {
         transform: rotate(2deg) skewX(2deg) translateY(3px) scale(0.98);
+    }
+
+    .submit-button:disabled {
+        cursor: not-allowed;
     }
 
     /* Responsive adjustments */
