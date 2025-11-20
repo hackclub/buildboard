@@ -26,7 +26,7 @@
             if (timeoutId) clearTimeout(timeoutId);
 
             if (result.type === 'failure') {
-                if (result.status === 422) {
+                if (result.status === 422 || result.status === 429) {
                     message = { text: 'Too many requests', type: 'error' };
                 } else {
                     // @ts-ignore

@@ -29,6 +29,24 @@ export const actions: Actions = {
         
         console.log(`IP Resolution: ClientReported=${client_reported_ip}, ServerResolved=${server_resolved_ip}, Final=${ip_address}`);
 
+        // Check IP count
+        try {
+            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count?ip=${ip_address}`, {
+                headers: {
+                    'Authorization': `${BEARER_TOKEN_BACKEND}`
+                }
+            });
+
+            if (countResponse.ok) {
+                const count = await countResponse.json();
+                if (count >= 5) {
+                    return fail(429, { message: 'Too many requests' });
+                }
+            }
+        } catch (error) {
+            console.error('Error checking IP count:', error);
+        }
+
         if (!email) {
             return fail(400, { missing: true });
         }
@@ -49,9 +67,6 @@ export const actions: Actions = {
                 })
             });
 
-            if (response.status === 422) {
-                return fail(422, { message: 'Too many requests' });
-            }
 
             const result = await response.json();
 
