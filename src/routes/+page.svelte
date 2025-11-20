@@ -213,16 +213,17 @@
     }
 
     /* Mobile overrides for button wrapper which is not inside .stage */
+    /*
     .mobile-image .button-background {
         position: absolute;
         top: 70%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: transparent; /* Transparent */
+        background-color: transparent;
         padding: 10rem;
         border-radius: 8px;
         z-index: 0;
-        display: none; /* Hide it */
+        display: none; 
     }
     
     .mobile-image .go-button {
@@ -233,17 +234,7 @@
         transform: translate(-50%, -50%);
         z-index: 1;
     }
-
-    .mobile-form-container {
-        position: absolute;
-        top: 85%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        z-index: 2;
-        display: flex;
-        justify-content: center;
-    }
+    */
 
     .message-toast {
         position: fixed;
