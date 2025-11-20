@@ -53,7 +53,7 @@
         min-width: 0; /* Critical for flex items to shrink properly */
         padding: 0.75rem 1rem;
         font-size: 1rem; /* Base font size, could use clamp() for more fluidity */
-        border: 1px solid rgba(0,0,0,0.2);
+        border: none; /* Remove border */
         border-radius: 0.5rem;
         background: transparent; /* Transparent background */
         backdrop-filter: none;   /* Remove blur */
@@ -63,26 +63,26 @@
         /* Adding a slight skew to make the text feel 'bent' with the container */
         transform: rotate(-2deg) skewX(-2deg) translateY(3px);
     }
-    
+
     .email-input:focus {
         outline: none;
-        border-color: rgba(0,0,0,0.8);
+        border: none;
         background: transparent; /* Keep transparent on focus */
-        box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+        box-shadow: none; /* Remove shadow on focus to keep it clean */
     }
-
+    
     /* ... */
 
     .submit-button {
         padding: 0.75rem 1rem; /* Reduced horizontal padding */
         font-size: 1rem;
         font-weight: 600;
-        color: #000; /* Change text to black to be visible without bg */
+        color: transparent; /* Text transparent (invisible) */
         background-color: transparent; /* Transparent background */
-        border: 1px solid rgba(0,0,0,0.2); /* Add border to match input */
+        border: none; /* Remove border */
         border-radius: 0.5rem;
         cursor: pointer;
-        transition: transform 0.1s ease, background-color 0.2s;
+        transition: none; /* Remove transition for invisible button */
         white-space: nowrap; /* Ensure text doesn't wrap awkwardly */
         
         /* "Frown" effect part 2: Tilt right side down (relative to center peak) */
@@ -91,9 +91,10 @@
     }
 
     .submit-button:hover {
-        background-color: rgba(0,0,0,0.05); /* Subtle hover effect */
-        /* Maintain rotation on hover */
-        transform: rotate(2deg) skewX(2deg) translateY(2px) scale(1.02);
+        background-color: transparent;
+        color: transparent;
+        /* Maintain exact same position (no hover effect) */
+        transform: rotate(2deg) skewX(2deg) translateY(3px);
     }
 
     .submit-button:active {

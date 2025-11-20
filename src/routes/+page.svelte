@@ -146,10 +146,11 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: rgba(0, 0, 0, 1);
+        background-color: transparent; /* Transparent background */
         padding: 10rem;
         border-radius: 8px;
         z-index: -1;
+        display: none; /* Hide it completely as requested */
     }
 
     .go-button {
@@ -157,7 +158,7 @@
         padding: 1rem 2rem;
         font-size: 1.5rem;
         cursor: pointer;
-        color: white;
+        color: #000; /* Black text to be visible on paper */
         text-decoration: none;
         display: inline-block;
 
@@ -206,10 +207,11 @@
         top: 70%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: rgba(0, 0, 0, 1);
+        background-color: transparent; /* Transparent */
         padding: 10rem;
         border-radius: 8px;
         z-index: 0;
+        display: none; /* Hide it */
     }
     
     .mobile-image .go-button {
