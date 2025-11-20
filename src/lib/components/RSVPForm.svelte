@@ -11,7 +11,7 @@
         /** @param {{ result: import('@sveltejs/kit').ActionResult }} param0 */
         return async ({ result }) => {
             submitting = false;
-            console.log('RSVP Result:', result);
+            // console.log('RSVP Result:', result);
             if (timeoutId) clearTimeout(timeoutId);
 
             if (result.type === 'failure') {

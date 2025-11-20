@@ -24,7 +24,8 @@ export const actions: Actions = {
         }
 
         try {
-            console.log(`New RSVP attempt: ${email} from ${ip_address}`);
+            console.log(`New RSVP attempt (anonymized)`);
+            // console.log(`Sending request to: https://${BACKEND_DOMAIN_NAME}/rsvps`);
             
             const response = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps`, {
                 method: 'POST',
@@ -50,8 +51,9 @@ export const actions: Actions = {
                 }
                 return { success: true };
             } else {
-                console.error('RSVP backend failed:', response.status, result);
-                return fail(response.status, { message: result.message || 'Something went wrong' });
+                console.error('RSVP backend failed:', response.status);
+                const errorMessage = result.message || result.error || (typeof result.detail === 'string' ? result.detail : null) || `Something went wrong (${response.status})`;
+                return fail(response.status, { message: errorMessage });
             }
         } catch (error) {
             console.error('RSVP error:', error);
