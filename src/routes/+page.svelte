@@ -97,7 +97,7 @@
         position: relative;
         background: #000; /* Fill gaps if any */
         display: flex;
-        align-items: center;
+        align-items: flex-start; /* Align top so top is never cut off */
         justify-content: center;
     }
 

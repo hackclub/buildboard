@@ -52,7 +52,7 @@
         flex: 1; /* Take up all available space */
         min-width: 0; /* Critical for flex items to shrink properly */
         padding: 0.75rem 1rem;
-        font-size: 1rem; /* Base font size, could use clamp() for more fluidity */
+        font-size: 1.5rem; /* Increased font size */
         border: none; /* Remove border */
         border-radius: 0.5rem;
         background: transparent; /* Transparent background */
@@ -75,7 +75,7 @@
 
     .submit-button {
         padding: 0.75rem 1rem; /* Reduced horizontal padding */
-        font-size: 1rem;
+        font-size: 1.5rem; /* Increased font size */
         font-weight: 600;
         color: transparent; /* Text transparent (invisible) */
         background-color: transparent; /* Transparent background */
