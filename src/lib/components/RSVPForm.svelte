@@ -26,7 +26,7 @@
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
-            <input type="email" name="email" placeholder="your email" required class="email-input" />
+            <input type="email" name="email" placeholder="your email" required class="email-input text-white" />
             <button 
                 type="submit" 
                 class="submit-button"
