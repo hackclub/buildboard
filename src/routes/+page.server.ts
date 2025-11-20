@@ -23,7 +23,6 @@ export const actions: Actions = {
 
         const data = await request.formData();
         const email = data.get('email')?.toString();
-        const ip_address = getClientAddress();
 
         if (!email) {
             return fail(400, { missing: true });
