@@ -26,6 +26,7 @@
 	},
 	"dependencies": {
 		"@sveltejs/adapter-node": "^5.4.0",
+		"@unleash/proxy-client-svelte": "^0.4.3",
 		"js-yaml": "^4.1.0"
 	}
 }

@@ -1,21 +1,36 @@
 <script>
     import { enhance } from '$app/forms';
 
+    let { message = $bindable(null) } = $props();
+    /** @type {any} */
+    let timeoutId;
+
     const handleSubmit = () => {
+        /** @param {{ result: import('@sveltejs/kit').ActionResult }} param0 */
         return async ({ result }) => {
+            if (timeoutId) clearTimeout(timeoutId);
+
             if (result.type === 'failure') {
                 if (result.status === 422) {
-                    alert('Too many requests');
+                    message = { text: 'Too many requests', type: 'error' };
                 } else {
-                    alert(result.data?.message || 'Error');
+                    // @ts-ignore
+                    message = { text: result.data?.message || 'Error', type: 'error' };
                 }
             } else if (result.type === 'success') {
                 console.log('New RSVP sent');
+                // @ts-ignore
                 if (result.data?.collision) {
-                    alert("email already rsvp'd");
+                    message = { text: "you've already done it", type: 'error' };
                 } else {
-                    alert('RSVP successful!');
+                    message = { text: 'it was successful', type: 'success' };
                 }
+            }
+            
+            if (message) {
+                timeoutId = setTimeout(() => {
+                    message = null;
+                }, 3000);
             }
         };
     };
@@ -37,6 +52,7 @@
         max-width: 25rem; /* Reduced width */
         padding: 0 1rem;  /* Prevent touching edges on small screens */
         box-sizing: border-box;
+        position: relative;
     }
 
     /* The wrapper uses Flexbox to align input and button */

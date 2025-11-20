@@ -1,6 +1,16 @@
 <script lang="ts">
 	import '../app.css';
+	import { FlagProvider } from '@unleash/proxy-client-svelte';
+	import { env } from '$env/dynamic/public';
+
 	let { children } = $props();
+
+	const config = {
+		url: env.PUBLIC_UNLEASH_URL || 'http://localhost:4242/api/frontend',
+		clientKey: env.PUBLIC_UNLEASH_CLIENT_KEY || 'default:development.unleash-insecure-frontend-token',
+		refreshInterval: 15,
+		appName: 'buildboard'
+	};
 
 	let innerWidth = $state(0);
 	let innerHeight = $state(0);
@@ -30,4 +40,6 @@
 </svelte:head>
 
 
-{@render children?.()}
+<FlagProvider {config}>
+	{@render children?.()}
+</FlagProvider>
