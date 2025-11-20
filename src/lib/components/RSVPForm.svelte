@@ -1,0 +1,109 @@
+<script>
+    import { enhance } from '$app/forms';
+
+    const handleSubmit = () => {
+        return async ({ result }) => {
+            if (result.type === 'failure') {
+                if (result.status === 422) {
+                    alert('Too many requests');
+                } else {
+                    alert(result.data?.message || 'Error');
+                }
+            } else if (result.type === 'success') {
+                console.log('New RSVP sent');
+                if (result.data?.collision) {
+                    alert("email already rsvp'd");
+                } else {
+                    alert('RSVP successful!');
+                }
+            }
+        };
+    };
+</script>
+
+<div class="rsvp-container">
+    <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
+        <div class="input-wrapper">
+            <input type="email" name="email" placeholder="Enter your email" required class="email-input" />
+            <button type="submit" class="submit-button">Submit</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Container anchors the form and controls max width */
+    .rsvp-container {
+        width: 100%;
+        max-width: 28rem; /* Approx 450px */
+        padding: 0 1rem;  /* Prevent touching edges on small screens */
+        box-sizing: border-box;
+    }
+
+    /* The wrapper uses Flexbox to align input and button */
+    .input-wrapper {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center; /* Center items vertically to handle rotation nicely */
+        /* On extremely small screens, we might want to wrap, but for an email field + button, row is usually fine. 
+           We can use media queries to switch to column if needed. */
+    }
+
+    .email-input {
+        flex: 1; /* Take up all available space */
+        min-width: 0; /* Critical for flex items to shrink properly */
+        padding: 0.75rem 1rem;
+        font-size: 1rem; /* Base font size, could use clamp() for more fluidity */
+        border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 0.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        transition: all 0.2s ease;
+        
+        /* "Frown" effect part 1: Tilt left side up */
+        transform: rotate(-2deg) translateY(3px);
+    }
+
+    .email-input:focus {
+        outline: none;
+        border-color: rgba(0,0,0,0.8);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
+    }
+
+    .submit-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background-color: #000;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: transform 0.1s ease, background-color 0.2s;
+        white-space: nowrap; /* Ensure text doesn't wrap awkwardly */
+        
+        /* "Frown" effect part 2: Tilt right side down (relative to center peak) */
+        transform: rotate(2deg) translateY(3px);
+    }
+
+    .submit-button:hover {
+        background-color: #333;
+        /* Maintain rotation on hover */
+        transform: rotate(2deg) translateY(2px) scale(1.02);
+    }
+
+    .submit-button:active {
+        transform: rotate(2deg) translateY(3px) scale(0.98);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+        .input-wrapper {
+            flex-direction: column;
+        }
+        
+        .submit-button {
+            width: 100%;
+        }
+    }
+</style>
