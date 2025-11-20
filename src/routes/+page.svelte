@@ -70,29 +70,34 @@
 </div>
 {:else}
 <div class="background">
+    <div class="section-top"></div>
+    <div class="section-middle">
+        <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={() => {
+            return async ({ result }) => {
+                if (result.type === 'failure') {
+                    if (result.status === 422) {
+                        alert('Too many requests');
+                    } else {
+                        alert(result.data?.message || 'Error');
+                    }
+                } else if (result.type === 'success') {
+                    console.log('New RSVP sent');
+                    if (result.data?.collision) {
+                        alert("email already rsvp'd");
+                    } else {
+                        alert('RSVP successful!');
+                    }
+                }
+            };
+        }}>
+            <input type="email" name="email" placeholder="Enter your email" required class="email-input" />
+            <button type="submit" class="submit-button">Submit</button>
+        </form>
+    </div>
+    <div class="section-bottom"></div>
+
     <div class="button-background"></div>
     <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
-    <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={() => {
-        return async ({ result }) => {
-            if (result.type === 'failure') {
-                if (result.status === 422) {
-                    alert('Too many requests');
-                } else {
-                    alert(result.data?.message || 'Error');
-                }
-            } else if (result.type === 'success') {
-                console.log('New RSVP sent');
-                if (result.data?.collision) {
-                    alert("email already rsvp'd");
-                } else {
-                    alert('RSVP successful!');
-                }
-            }
-        };
-    }}>
-        <input type="email" name="email" placeholder="Enter your email" required class="email-input" />
-        <button type="submit" class="submit-button">Submit</button>
-    </form>
 </div>
 {/if}
 
@@ -207,5 +212,39 @@
 
     .mobile-image .go-button {
         font-size: 1rem;
+    }
+
+    .section-top,
+    .section-middle,
+    .section-bottom {
+        position: absolute;
+        width: 100%;
+        height: 33.33vh;
+        background-color: transparent;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .section-top {
+        top: 0;
+    }
+
+    .section-middle {
+        top: 33.33vh;
+    }
+
+    .section-bottom {
+        top: 66.66vh;
+    }
+
+    .section-middle .rsvp-form {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        padding-top: 1%;
+        margin-left: 3%;
     }
 </style>
