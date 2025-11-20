@@ -24,8 +24,8 @@
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
-            <input type="email" name="email" placeholder="Enter your email" required class="email-input" />
-            <button type="submit" class="submit-button">Submit</button>
+            <input type="email" name="email" placeholder="your email" required class="email-input" />
+            <button type="submit" class="submit-button">submit </button>
         </div>
     </form>
 </div>
@@ -34,7 +34,7 @@
     /* Container anchors the form and controls max width */
     .rsvp-container {
         width: 100%;
-        max-width: 28rem; /* Approx 450px */
+        max-width: 25rem; /* Reduced width */
         padding: 0 1rem;  /* Prevent touching edges on small screens */
         box-sizing: border-box;
     }
@@ -55,45 +55,49 @@
         font-size: 1rem; /* Base font size, could use clamp() for more fluidity */
         border: 1px solid rgba(0,0,0,0.2);
         border-radius: 0.5rem;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(4px);
+        background: transparent; /* Transparent background */
+        backdrop-filter: none;   /* Remove blur */
         transition: all 0.2s ease;
         
         /* "Frown" effect part 1: Tilt left side up */
-        transform: rotate(-2deg) translateY(3px);
+        /* Adding a slight skew to make the text feel 'bent' with the container */
+        transform: rotate(-2deg) skewX(-2deg) translateY(3px);
     }
-
+    
     .email-input:focus {
         outline: none;
         border-color: rgba(0,0,0,0.8);
-        background: #fff;
+        background: transparent; /* Keep transparent on focus */
         box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
     }
 
+    /* ... */
+
     .submit-button {
-        padding: 0.75rem 1.5rem;
+        padding: 0.75rem 1rem; /* Reduced horizontal padding */
         font-size: 1rem;
         font-weight: 600;
-        color: #fff;
-        background-color: #000;
-        border: none;
+        color: #000; /* Change text to black to be visible without bg */
+        background-color: transparent; /* Transparent background */
+        border: 1px solid rgba(0,0,0,0.2); /* Add border to match input */
         border-radius: 0.5rem;
         cursor: pointer;
         transition: transform 0.1s ease, background-color 0.2s;
         white-space: nowrap; /* Ensure text doesn't wrap awkwardly */
         
         /* "Frown" effect part 2: Tilt right side down (relative to center peak) */
-        transform: rotate(2deg) translateY(3px);
+        /* Adding skew to match the input's distortion style */
+        transform: rotate(2deg) skewX(2deg) translateY(3px);
     }
 
     .submit-button:hover {
-        background-color: #333;
+        background-color: rgba(0,0,0,0.05); /* Subtle hover effect */
         /* Maintain rotation on hover */
-        transform: rotate(2deg) translateY(2px) scale(1.02);
+        transform: rotate(2deg) skewX(2deg) translateY(2px) scale(1.02);
     }
 
     .submit-button:active {
-        transform: rotate(2deg) translateY(3px) scale(0.98);
+        transform: rotate(2deg) skewX(2deg) translateY(3px) scale(0.98);
     }
 
     /* Responsive adjustments */

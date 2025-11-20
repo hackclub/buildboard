@@ -160,6 +160,14 @@
         color: white;
         text-decoration: none;
         display: inline-block;
+
+        /* Matching the frown aesthetic - slightly tilted */
+        transform: rotate(-1deg) translateY(2px);
+        transition: transform 0.2s ease;
+    }
+
+    .go-button:hover {
+        transform: rotate(-1deg) translateY(0px) scale(1.05);
     }
 
 
