@@ -34,6 +34,8 @@
     let smallLayout = $derived(innerWidth > 1200 && innerWidth < 1246);
     // Mobile check removed, we use the unified stage for everyone
     // let mobileLayout = $derived(innerWidth <= 1200); 
+    
+    let submitHovered = $state(false);
 
     let hcaRedirect = `https://hca.dinosaurbbq.org/oauth/authorize?client_id=${PUBLIC_HC_OAUTH_CLIENT_ID}&redirect_uri=${PUBLIC_HC_OAUTH_REDIRECT_URL}&response_type=${PUBLIC_HC_OAUTH_RESPONSE_TYPE}&scope=email`;
     let slackRedirect = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${PUBLIC_SLACK_CLIENT_ID}&state=${PUBLIC_SLACK_OAUTH_STATE}&nonce=${PUBLIC_SLACK_OAUTH_NONCE}&redirect_uri=${PUBLIC_SLACK_REDIRECT_URI}`
@@ -63,11 +65,11 @@
     <div class="stage" style="width: {stageWidth}px; height: {stageHeight}px;">
         <!-- Background Layers -->
         <img src="/bg.png" alt="" class="stage-bg" />
-        <img src="/email.png" alt="" class="stage-overlay" />
+        <img src={submitHovered ? "/rsvphover.png" : "/email.png"} alt="" class="stage-overlay" />
 
         <!-- Anchored Content -->
         <div class="anchored-form">
-            <RSVPForm />
+            <RSVPForm bind:isHovered={submitHovered} />
         </div>
 
         <!-- <div class="anchored-button-wrapper">

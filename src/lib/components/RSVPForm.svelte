@@ -1,6 +1,8 @@
 <script>
     import { enhance } from '$app/forms';
 
+    let { isHovered = $bindable(false) } = $props();
+
     const handleSubmit = () => {
         return async ({ result }) => {
             if (result.type === 'failure') {
@@ -25,7 +27,12 @@
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
             <input type="email" name="email" placeholder="your email" required class="email-input" />
-            <button type="submit" class="submit-button">submit </button>
+            <button 
+                type="submit" 
+                class="submit-button"
+                onmouseenter={() => isHovered = true}
+                onmouseleave={() => isHovered = false}
+            >submit </button>
         </div>
     </form>
 </div>
