@@ -15,6 +15,12 @@ function unhashUserID(hashedUserID: string): string {
 
 export const actions: Actions = {
     rsvp: async ({ request, getClientAddress }) => {
+        // Debug: Log all headers to see which one contains the real IP
+        const headers = Object.fromEntries(request.headers);
+        console.log('Incoming Request Headers:', JSON.stringify(headers, null, 2));
+        const ip_address = getClientAddress();
+        console.log(`Resolved IP: ${ip_address}`);
+
         const data = await request.formData();
         const email = data.get('email')?.toString();
         const ip_address = getClientAddress();
