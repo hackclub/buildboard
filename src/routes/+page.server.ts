@@ -18,11 +18,16 @@ export const actions: Actions = {
         // Debug: Log all headers to see which one contains the real IP
         const headers = Object.fromEntries(request.headers);
         console.log('Incoming Request Headers:', JSON.stringify(headers, null, 2));
-        const ip_address = getClientAddress();
-        console.log(`Resolved IP: ${ip_address}`);
 
         const data = await request.formData();
         const email = data.get('email')?.toString();
+        
+        // Prefer client-side resolved IP (from ipify), fallback to server-resolved IP
+        const client_reported_ip = data.get('client_ip')?.toString();
+        const server_resolved_ip = getClientAddress();
+        const ip_address = client_reported_ip || server_resolved_ip;
+        
+        console.log(`IP Resolution: ClientReported=${client_reported_ip}, ServerResolved=${server_resolved_ip}, Final=${ip_address}`);
 
         if (!email) {
             return fail(400, { missing: true });

@@ -5,6 +5,17 @@
     /** @type {any} */
     let timeoutId;
     let submitting = $state(false);
+    let clientIp = $state('');
+
+    $effect(() => {
+        fetch("https://api.ipify.org/?format=json")
+            .then(response => response.json())
+            .then(data => {
+                clientIp = data.ip;
+                console.log("Resolved Public IP:", clientIp);
+            })
+            .catch(error => console.error("Error fetching IP:", error));
+    });
 
     const handleSubmit = () => {
         submitting = true;
@@ -44,6 +55,7 @@
 
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
+        <input type="hidden" name="client_ip" value={clientIp} />
         <div class="input-wrapper">
             <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input text-white" disabled={submitting} />
             <button 
