@@ -1,7 +1,7 @@
 <script>
     import { enhance } from '$app/forms';
 
-    let { message = $bindable(null) } = $props();
+    let { message = $bindable(null), isHovered = $bindable(false) } = $props();
     /** @type {any} */
     let timeoutId;
 
@@ -39,8 +39,13 @@
 <div class="rsvp-container">
     <form method="POST" action="?/rsvp" class="rsvp-form" use:enhance={handleSubmit}>
         <div class="input-wrapper">
-            <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input" />
-            <button type="submit" class="submit-button">submit </button>
+            <input type="email" name="email" placeholder="your email" required autocomplete="email" class="email-input text-white" />
+            <button 
+                type="submit" 
+                class="submit-button"
+                onmouseenter={() => isHovered = true}
+                onmouseleave={() => isHovered = false}
+            >submit </button>
         </div>
     </form>
 </div>
