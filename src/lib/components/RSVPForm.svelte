@@ -12,7 +12,6 @@
             .then(response => response.json())
             .then(data => {
                 clientIp = data.ip;
-                console.log("Resolved Public IP:", clientIp);
             })
             .catch(error => console.error("Error fetching IP:", error));
     });
