@@ -31,7 +31,7 @@ export const actions: Actions = {
 
         // Check IP count
         try {
-            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count?ip=${ip_address}`, {
+            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count-ip?ip=${ip_address}`, {
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`
                 }
