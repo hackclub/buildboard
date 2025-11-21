@@ -22,16 +22,12 @@ export const actions: Actions = {
         const data = await request.formData();
         const email = data.get('email')?.toString();
         
-        // Prefer client-side resolved IP (from ipify), fallback to server-resolved IP
-        const client_reported_ip = data.get('client_ip')?.toString();
-        const server_resolved_ip = getClientAddress();
-        const ip_address = client_reported_ip || server_resolved_ip;
-        
-        console.log(`IP Resolution: ClientReported=${client_reported_ip}, ServerResolved=${server_resolved_ip}, Final=${ip_address}`);
+        // Securely get IP address from server (configured to trust Cloudflare headers)
+        const ip_address = getClientAddress();
 
         // Check IP count
         try {
-            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count-ip?ip=${ip_address}`, {
+            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count/${ip_address}`, {
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`
                 }
