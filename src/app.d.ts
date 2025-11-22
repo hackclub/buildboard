@@ -3,7 +3,11 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			flags: {
+				isEnabled: (name: string) => boolean;
+			};
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

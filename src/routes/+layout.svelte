@@ -1,17 +1,9 @@
 <script lang="ts">
 	import '../app.css';
-	import { FlagProvider } from '@unleash/proxy-client-svelte';
 	import { env } from '$env/dynamic/public';
 
-	let { children } = $props();
-
-	const config = {
-		url: env.PUBLIC_UNLEASH_URL || 'https://unleash-k8wgsws4sco8gcoscksow0o4.a.selfhosted.hackclub.com/api/frontend',
-		clientKey: env.PUBLIC_UNLEASH_CLIENT_KEY || 'default:development.unleash-insecure-frontend-token',
-		refreshInterval: 15,
-		appName: 'buildboard'
-	};
-
+	let { children, data } = $props();
+	
 	let innerWidth = $state(0);
 	let innerHeight = $state(0);
 	let tooSmall = $derived(innerWidth < 1345 || innerHeight < 790);
@@ -20,17 +12,21 @@
 
 	onMount(() => {
 		const updateSize = () => {
-			innerWidth = window.innerWidth;
-			innerHeight = window.innerHeight;
+			if (typeof window !== 'undefined') {
+				innerWidth = window.innerWidth;
+				innerHeight = window.innerHeight;
+			}
 		};
 
-		updateSize();
+		if (typeof window !== 'undefined') {
+			updateSize();
 
-		window.addEventListener('resize', updateSize);
+			window.addEventListener('resize', updateSize);
 
-		return () => {
-			window.removeEventListener('resize', updateSize);
-		};
+			return () => {
+				window.removeEventListener('resize', updateSize);
+			};
+		}
 	});
 </script>
 
@@ -53,6 +49,4 @@
 </svelte:head>
 
 
-<FlagProvider {config}>
-	{@render children?.()}
-</FlagProvider>
+{@render children?.()}

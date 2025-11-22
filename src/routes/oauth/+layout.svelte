@@ -1,18 +1,18 @@
 <script>
-    import { useFlag } from '@unleash/proxy-client-svelte';
+    import { page } from '$app/stores';
     import { goto } from '$app/navigation';
     import { browser } from '$app/environment';
     
     let { children } = $props();
-    const platformEnabled = useFlag('enable-platform');
+    $: platformEnabled = $page.data.flags?.enablePlatform;
     
     $effect(() => {
-        if (browser && !$platformEnabled) {
+        if (browser && !platformEnabled) {
             goto('/');
         }
     });
 </script>
 
-{#if $platformEnabled}
+{#if platformEnabled}
     {@render children?.()}
 {/if}

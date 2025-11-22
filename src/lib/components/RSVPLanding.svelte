@@ -1,8 +1,7 @@
 <script>
     import { onMount } from 'svelte';
-    import { page } from '$app/state';
+    import { page } from '$app/stores';
     import { fade } from 'svelte/transition';
-    import { useFlag } from '@unleash/proxy-client-svelte';
     import { PUBLIC_HC_OAUTH_CLIENT_ID, PUBLIC_HC_OAUTH_REDIRECT_URL, PUBLIC_HC_OAUTH_RESPONSE_TYPE, PUBLIC_SLACK_CLIENT_ID, PUBLIC_SLACK_OAUTH_STATE, PUBLIC_SLACK_OAUTH_NONCE, PUBLIC_SLACK_REDIRECT_URI } from '$env/static/public';
     import RSVPForm from '$lib/components/RSVPForm.svelte';
 
@@ -12,8 +11,8 @@
     /** @type {{ text: string, type: 'success' | 'error' } | null} */
     let message = $state(null);
     
-    const showSlackButton = useFlag('show-slack-button');
-    const platformEnabled = useFlag('enable-platform');
+    let showSlackButton = $derived($page.data.flags?.showSlackButton);
+    let platformEnabled = $derived($page.data.flags?.enablePlatform);
     
     // Image dimensions
     const IMG_W = 3100;
@@ -78,14 +77,14 @@
             <RSVPForm bind:message bind:isHovered={submitHovered} />
         </div>
 
-        {#if $showSlackButton}
+        {#if showSlackButton}
         <div class="anchored-button-wrapper">
             <div class="button-background"></div>
             <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
         </div>
         {/if}
 
-        {#if $platformEnabled}
+        {#if platformEnabled}
             <div class="anchored-app-link">
                 <a href="/app" class="app-button">Enter App</a>
             </div>

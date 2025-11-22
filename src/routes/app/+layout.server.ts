@@ -1,8 +1,13 @@
 import type { LayoutServerLoad } from './$types';
 import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND } from '$env/static/private';
 import { unhashUserID } from '$lib/server/auth';
+import { redirect } from '@sveltejs/kit';
 
-export const load: LayoutServerLoad = async ({ cookies }) => {
+export const load: LayoutServerLoad = async ({ cookies, locals }) => {
+    if (!locals.flags.isEnabled('enable-platform')) {
+        throw redirect(303, '/');
+    }
+
     const hashedUserID = cookies.get('userID');
 
     if (!hashedUserID) {

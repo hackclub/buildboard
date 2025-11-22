@@ -1,19 +1,18 @@
 <script>
-    import { useFlag } from '@unleash/proxy-client-svelte';
+    import { page } from '$app/stores';
     import { goto } from '$app/navigation';
-    import { page } from '$app/state';
     import { browser } from '$app/environment';
     import { getUser, updateUser, isLoading } from '$lib/state/user.svelte';
     import { onMount } from 'svelte';
 
     let { children } = $props();
-    const platformEnabled = useFlag('enable-platform');
+    $: platformEnabled = $page.data.flags?.enablePlatform;
     
     let user = $derived(getUser());
     let loading = $derived(isLoading());
 
     $effect(() => {
-        if (browser && !$platformEnabled) {
+        if (browser && !platformEnabled) {
             goto('/');
         }
     });
@@ -28,7 +27,7 @@
     });
 </script>
 
-{#if $platformEnabled}
+{#if platformEnabled}
     {#if loading && !user}
         <div class="loading-screen">
             <p>Loading...</p>
