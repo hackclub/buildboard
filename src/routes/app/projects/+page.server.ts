@@ -1,5 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND } from '$env/static/private';
+import { unhashUserID } from '$lib/server/auth';
 
 interface Project {
     created_at: string;
@@ -10,8 +11,14 @@ interface Project {
     submission_week: number;
 }
 
-export const load: PageServerLoad = async ({ parent }) => {
-    const { userID } = await parent();
+export const load: PageServerLoad = async ({ cookies }) => {
+    const hashedUserID = cookies.get('userID');
+
+    if (!hashedUserID) {
+        return { projects: [] as Project[] };
+    }
+
+    const userID = unhashUserID(hashedUserID);
 
     try {
         // Fetch user's projects
