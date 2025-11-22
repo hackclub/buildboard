@@ -6,7 +6,7 @@
 	let { children } = $props();
 
 	const config = {
-		url: env.PUBLIC_UNLEASH_URL || 'http://localhost:4242/api/frontend',
+		url: env.PUBLIC_UNLEASH_URL || 'https://unleash-k8wgsws4sco8gcoscksow0o4.a.selfhosted.hackclub.com/api/frontend',
 		clientKey: env.PUBLIC_UNLEASH_CLIENT_KEY || 'default:development.unleash-insecure-frontend-token',
 		refreshInterval: 15,
 		appName: 'buildboard'
