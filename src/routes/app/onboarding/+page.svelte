@@ -7,6 +7,7 @@
     function acknowledgeHackatime() {
         hackatimeAcknowledged = true;
         document.cookie = "hackatimeAcknowledged=true; path=/; max-age=" + (30 * 24 * 60 * 60);
+        window.location.href = '/app/projects';
     }
 
     function getCookie(name: string) {
