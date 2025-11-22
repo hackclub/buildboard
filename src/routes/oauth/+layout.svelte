@@ -4,7 +4,7 @@
     import { browser } from '$app/environment';
     
     let { children } = $props();
-    $: platformEnabled = $page.data.flags?.enablePlatform;
+    let platformEnabled = $derived($page.data.flags?.enablePlatform);
     
     $effect(() => {
         if (browser && !platformEnabled) {

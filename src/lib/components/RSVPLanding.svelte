@@ -48,7 +48,7 @@
     let slackRedirect = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${PUBLIC_SLACK_CLIENT_ID}&state=${PUBLIC_SLACK_OAUTH_STATE}&nonce=${PUBLIC_SLACK_OAUTH_NONCE}&redirect_uri=${PUBLIC_SLACK_REDIRECT_URI}`
     
     onMount(() => {
-        const error = page.url.searchParams.get('error');
+        const error = $page.url.searchParams.get('error');
         if (error) {
             alert(error);
         }

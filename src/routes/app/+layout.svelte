@@ -6,7 +6,7 @@
     import { onMount } from 'svelte';
 
     let { children } = $props();
-    $: platformEnabled = $page.data.flags?.enablePlatform;
+    let platformEnabled = $derived($page.data.flags?.enablePlatform);
     
     let user = $derived(getUser());
     let loading = $derived(isLoading());
@@ -39,8 +39,8 @@
                     <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" class="avatar" />
                     <span class="email">{user.email}</span>
                 </div>
-                <a href="/app/projects" class:active={page.url.pathname.includes('/projects')}>Projects</a>
-                <a href="/app/settings" class:active={page.url.pathname.includes('/settings')}>Settings</a>
+                <a href="/app/projects" class:active={$page.url.pathname.includes('/projects')}>Projects</a>
+                <a href="/app/settings" class:active={$page.url.pathname.includes('/settings')}>Settings</a>
             </nav>
             <main>
                 {@render children?.()}
