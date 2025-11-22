@@ -36,7 +36,20 @@
 
 <svelte:head>
 	<link rel="icon" type="image/png" href="/back.png" />
-	<title> Buildboard </title>
+	<title>Buildboard - Immortalize your project</title>
+	<meta name="description" content="Buildboard is a program that immortalizes Hack Clubbers’ projects. Ship your passion project, document the journey, and get featured on a billboard in NYC or near you. This is your time to show the whole world." />
+	
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Buildboard - Immortalize your project" />
+	<meta property="og:description" content="Buildboard is a program that immortalizes Hack Clubbers’ projects. Ship your passion project, document the journey, and get featured on a billboard in NYC or near you. This is your time to show the whole world." />
+	<meta property="og:image" content="https://assets.hackclub.com/flag-orpheus-top.png" />
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:title" content="Buildboard - Immortalize your project" />
+	<meta property="twitter:description" content="Buildboard is a program that immortalizes Hack Clubbers’ projects. Ship your passion project, document the journey, and get featured on a billboard in NYC or near you. This is your time to show the whole world." />
+	<meta property="twitter:image" content="https://assets.hackclub.com/flag-orpheus-top.png" />
 </svelte:head>
 
 
