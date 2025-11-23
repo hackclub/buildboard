@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
-import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND } from '$env/static/private';
-import { unhashUserID } from '$lib/server/auth';
+import { BEARER_TOKEN_BACKEND } from '$env/static/private';
+import { unhashUserID, getBackendUrl } from '$lib/server/auth';
 
 interface Project {
     created_at: string;
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
     try {
         // Fetch user's projects
-        const projectsResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users/${userID}/projects`, {
+        const projectsResponse = await fetch(getBackendUrl(`/users/${userID}/projects`), {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`
             }
