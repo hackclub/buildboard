@@ -1,8 +1,7 @@
 import { redirect, isRedirect, isHttpError } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { PUBLIC_SLACK_CLIENT_ID, PUBLIC_SLACK_OAUTH_STATE, PUBLIC_SLACK_OAUTH_NONCE, PUBLIC_SLACK_REDIRECT_URI } from '$env/static/public';
-import { SLACK_CLIENT_SECRET, BEARER_TOKEN_BACKEND, ENCRYPTION_KEY, npm_config_cache } from '$env/static/private';
-import { getBackendUrl } from '$lib/server/auth';
+import { SLACK_CLIENT_SECRET, BEARER_TOKEN_BACKEND, BACKEND_DOMAIN_NAME, ENCRYPTION_KEY, npm_config_cache } from '$env/static/private';
 import { createCipheriv, randomBytes } from 'crypto';
 
 function hashUserID(userID: string): string {
@@ -76,29 +75,13 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         const email = tokenPayload.email;
         const firstName = tokenPayload.name;
 
-        const backendUrl = getBackendUrl(`/users/by-email/${encodeURIComponent(email)}`);
-        console.log('Fetching user from:', backendUrl);
-        const userResponse = await fetch(backendUrl, {
+        const userResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users/by-email/${encodeURIComponent(email)}`, {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`
             }
         });
 
-        let user1 = null;
-        if (userResponse.ok) {
-            try {
-                user1 = await userResponse.json();
-            } catch (e) {
-                console.error('Failed to parse user response:', e);
-            }
-        } else if (userResponse.status === 404) {
-            console.log('User not found (404 returned from backend)');
-        } else {
-            const errorText = await userResponse.text();
-            console.error(`Backend error ${userResponse.status}:`, errorText);
-            throw redirect(302, '/?error=' + encodeURIComponent('Login failed: Backend unavailable'));
-        }
-
+        let user1 = await userResponse.json();
         console.log('User fetched by email:', user1);
         if (!user1 || !user1.user_id) {
             console.log('User not found for email, creating new user');
@@ -109,8 +92,6 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                 slack_id: slackID,
                 email: email,
                 is_admin: false,
-                is_idv: false,
-                is_slack_member: true,
                 address_line_1: null,
                 address_line_2: null,
                 city: null,
@@ -121,10 +102,9 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             };
 
             console.log('Creating user with request body:', requestBody);
-            const createUrl = getBackendUrl('/users');
-            console.log('Request URL:', createUrl);
+            console.log('Request URL:', `https://${BACKEND_DOMAIN_NAME}/users`);
             
-            const createUserResponse = await fetch(createUrl, {
+            const createUserResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`,
@@ -138,7 +118,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             if (!createUserResponse.ok) {
                 const errorBody = await createUserResponse.text();
                 console.error('Failed to create user. Response:', errorBody);
-                throw redirect(302, '/?error=' + encodeURIComponent('Login failed. Please try again.'));
+                throw redirect(302, '/?error=' + encodeURIComponent('Error creating user, you may need to update your IDV settings in Hack Club Account'));
             }
 
             const responseBody = await createUserResponse.text();
@@ -149,7 +129,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         ////console.log('User logged in:', user1.user_id);
         const hashedUserID = hashUserID(user1.user_id);
         cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
-        throw redirect(302, '/app/onboarding');
+        throw redirect(302, '/whiteboard');
 
 
     } catch (err) {
