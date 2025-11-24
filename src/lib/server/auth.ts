@@ -1,4 +1,4 @@
-import { ENCRYPTION_KEY } from '$env/static/private';
+import { ENCRYPTION_KEY, BACKEND_DOMAIN_NAME } from '$env/static/private';
 import { createDecipheriv } from 'crypto';
 
 export function unhashUserID(hashedUserID: string): string {
@@ -11,4 +11,23 @@ export function unhashUserID(hashedUserID: string): string {
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
+}
+
+export function getBackendUrl(path: string): string {
+    let baseUrl = BACKEND_DOMAIN_NAME;
+    
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+         const protocol = (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) ? 'http' : 'https';
+         baseUrl = `${protocol}://${baseUrl}`;
+    }
+    
+    // Remove trailing slash from base if present
+    if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.slice(0, -1);
+    }
+
+    // Remove leading slash from path if present
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    
+    return `${baseUrl}/${cleanPath}`;
 }
