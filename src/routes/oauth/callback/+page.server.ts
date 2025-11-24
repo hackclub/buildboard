@@ -1,5 +1,6 @@
 import { redirect, isRedirect, isHttpError } from '@sveltejs/kit';
-import { HC_OAUTH_CLIENT_SECRET, BEARER_TOKEN_BACKEND, BACKEND_DOMAIN_NAME, ENCRYPTION_KEY } from '$env/static/private';
+import { HC_OAUTH_CLIENT_SECRET, BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
+import { getBackendUrl } from '$lib/server/auth';
 import { PUBLIC_HC_OAUTH_CLIENT_ID, PUBLIC_HC_OAUTH_REDIRECT_URL } from '$env/static/public';
 import type { PageServerLoad } from './$types';
 import { createCipheriv, randomBytes } from 'crypto';
@@ -67,18 +68,34 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         const userIDV = await getCompositePrimaryKey.json();
         console.log('User fetched successfully from IDV:', userIDV);
 
-        const userResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users/by-email/${encodeURIComponent(userIDV.identity.primary_email)}`, {
+        const userResponse = await fetch(getBackendUrl(`/users/by-email/${encodeURIComponent(userIDV.identity.primary_email)}`), {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`
             }
         });
 
-        let user = await userResponse.json();
+        let user = null;
+        if (userResponse.ok) {
+            try {
+                user = await userResponse.json();
+            } catch (e) {
+                console.error('Failed to parse user response:', e);
+            }
+        } else if (userResponse.status === 404) {
+            console.log('User not found (404 returned from backend)');
+        } else {
+            const errorText = await userResponse.text();
+            console.error(`Backend error ${userResponse.status}:`, errorText);
+            throw redirect(302, '/?error=' + encodeURIComponent('Login failed: Backend unavailable'));
+        }
 
         if (!user || !user.user_id) {
             console.log('User not found for email, creating new user');
             
-            const createUserResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users`, {
+            const hasAddress = userIDV.identity.addresses?.[0]?.line_1;
+            const slackId = userIDV.identity.slack_id || null;
+            
+            const createUserResponse = await fetch(getBackendUrl('/users'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`,
@@ -87,22 +104,27 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                 body: JSON.stringify({
                     first_name: userIDV.identity.first_name || '',
                     last_name: userIDV.identity.last_name || '',
-                    slack_id: userIDV.identity.slack_id || '',
+                    slack_id: slackId,
                     email: userIDV.identity.primary_email,
                     is_admin: false,
-                    address_line_1: userIDV.identity.addresses?.[0]?.line_1 || '',
-                    address_line_2: userIDV.identity.addresses?.[0]?.line_2 || '',
-                    city: userIDV.identity.addresses?.[0]?.city || '',
-                    state: userIDV.identity.addresses?.[0]?.state || '',
-                    country: userIDV.identity.addresses?.[0]?.country_code || '',
-                    post_code: userIDV.identity.addresses?.[0]?.postal_code || '',
+                    is_idv: !!hasAddress,
+                    is_slack_member: !!slackId,
+                    address_line_1: userIDV.identity.addresses?.[0]?.line_1 || null,
+                    address_line_2: userIDV.identity.addresses?.[0]?.line_2 || null,
+                    city: userIDV.identity.addresses?.[0]?.city || null,
+                    state: userIDV.identity.addresses?.[0]?.state || null,
+                    country: userIDV.identity.addresses?.[0]?.country_code || null,
+                    post_code: userIDV.identity.addresses?.[0]?.postal_code || null,
                     birthday: new Date().toISOString()
                 })
             });
 
             if (!createUserResponse.ok) {
-                console.error('Failed to create user');
-                throw redirect(302, '/?error=' + encodeURIComponent('Error creating user, you may need to update your IDV settings in Hack Club Account'));
+                console.error('Failed to create user', await createUserResponse.text());
+                // Fallback or proceed? If creation fails, we can't really proceed with login. 
+                // But since we made fields optional, it SHOULD succeed now.
+                // If it still fails, we probably shouldn't redirect with that specific IDV error message.
+                throw redirect(302, '/?error=' + encodeURIComponent('Login failed. Please try again.'));
             }
 
             user = await createUserResponse.json();
@@ -111,7 +133,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         const hashedUserID = hashUserID(user.user_id);
         cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
         cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
-        throw redirect(302, '/whiteboard');
+        throw redirect(302, '/app/onboarding');
 
     } catch (err) {
         // If this is an intentional redirect or an HTTP error from SvelteKit, rethrow it untouched

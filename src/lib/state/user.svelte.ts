@@ -5,6 +5,10 @@ export interface User {
     email: string;
     slack_id?: string;
     username?: string;
+    is_admin?: boolean;
+    is_reviewer?: boolean;
+    is_idv?: boolean;
+    is_slack_member?: boolean;
     [key: string]: any;
 }
 
@@ -25,7 +29,7 @@ export function isLoading() {
 export async function updateUser() {
     if (loading) return user;
     loading = true;
-    
+
     try {
         const res = await fetch('/api/me');
         if (res.ok) {
@@ -40,7 +44,7 @@ export async function updateUser() {
     } finally {
         loading = false;
     }
-    
+
     return user;
 }
 
