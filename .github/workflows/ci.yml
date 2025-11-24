@@ -54,8 +54,6 @@ jobs:
           PUBLIC_SLACK_OAUTH_STATE: "dummy_state"
           PUBLIC_SLACK_OAUTH_NONCE: "dummy_nonce"
           PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
-          PUBLIC_UNLEASH_URL: "http://localhost/api"
-          PUBLIC_UNLEASH_CLIENT_KEY: "dummy_key"
         run: npm run check
 
   build:
@@ -89,6 +87,4 @@ jobs:
           PUBLIC_SLACK_OAUTH_STATE: "dummy_state"
           PUBLIC_SLACK_OAUTH_NONCE: "dummy_nonce"
           PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
-          PUBLIC_UNLEASH_URL: "http://localhost/api"
-          PUBLIC_UNLEASH_CLIENT_KEY: "dummy_key"
         run: npm run build
