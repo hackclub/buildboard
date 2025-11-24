@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { unhashUserID, getBackendUrl } from '$lib/server/auth';
-import { BEARER_TOKEN_BACKEND } from '$env/static/private';
+import { unhashUserID } from '$lib/server/auth';
+import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND } from '$env/static/private';
 
 export async function GET({ cookies, fetch }) {
     const hashedUserID = cookies.get('userID');
@@ -12,7 +12,7 @@ export async function GET({ cookies, fetch }) {
     try {
         const userID = unhashUserID(hashedUserID);
 
-        const response = await fetch(getBackendUrl(`/users/${userID}`), {
+        const response = await fetch(`https://${BACKEND_DOMAIN_NAME}/users/${userID}`, {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`
             }

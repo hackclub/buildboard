@@ -1,19 +1,19 @@
 <script>
-    import { page } from "$app/stores";
-    import { goto } from "$app/navigation";
-    import { browser } from "$app/environment";
-    import { getUser, updateUser, isLoading } from "$lib/state/user.svelte";
-    import { onMount } from "svelte";
+    import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
+    import { browser } from '$app/environment';
+    import { getUser, updateUser, isLoading } from '$lib/state/user.svelte';
+    import { onMount } from 'svelte';
 
     let { children } = $props();
     let platformEnabled = $derived($page.data.flags?.enablePlatform);
-
+    
     let user = $derived(getUser());
     let loading = $derived(isLoading());
 
     $effect(() => {
         if (browser && !platformEnabled) {
-            goto("/");
+            goto('/');
         }
     });
 
@@ -21,7 +21,7 @@
         if (browser) {
             const u = await updateUser();
             if (!u) {
-                goto("/");
+                goto('/');
             }
         }
     });
@@ -36,31 +36,11 @@
         <div class="app-layout">
             <nav>
                 <div class="user-profile">
-                    <img
-                        src={user.avatar ||
-                            `https://ui-avatars.com/api/?name=${user.email}`}
-                        alt="Avatar"
-                        class="avatar"
-                    />
+                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" class="avatar" />
                     <span class="email">{user.email}</span>
                 </div>
-                <a
-                    href="/app/projects"
-                    class:active={$page.url.pathname.includes("/projects")}
-                    >Projects</a
-                >
-                {#if user.is_admin}
-                    <a
-                        href="/app/admin"
-                        class:active={$page.url.pathname.includes("/admin")}
-                        >Admin</a
-                    >
-                {/if}
-                <a
-                    href="/app/settings"
-                    class:active={$page.url.pathname.includes("/settings")}
-                    >Settings</a
-                >
+                <a href="/app/projects" class:active={$page.url.pathname.includes('/projects')}>Projects</a>
+                <a href="/app/settings" class:active={$page.url.pathname.includes('/settings')}>Settings</a>
             </nav>
             <main>
                 {@render children?.()}
