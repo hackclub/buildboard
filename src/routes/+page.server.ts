@@ -1,6 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
-import { getBackendUrl } from '$lib/server/auth';
+import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
 import { createDecipheriv } from 'crypto';
 import { fail } from '@sveltejs/kit';
 
@@ -28,7 +27,7 @@ export const actions: Actions = {
 
         // Check IP count
         try {
-            const countResponse = await fetch(getBackendUrl(`/rsvps/count/${ip_address}`), {
+            const countResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps/count/${ip_address}`, {
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`
                 }
@@ -50,9 +49,9 @@ export const actions: Actions = {
 
         try {
             console.log(`New RSVP attempt (anonymized)`);
-            // console.log(`Sending request to: ${getBackendUrl('/rsvps')}`);
-
-            const response = await fetch(getBackendUrl('/rsvps'), {
+            // console.log(`Sending request to: https://${BACKEND_DOMAIN_NAME}/rsvps`);
+            
+            const response = await fetch(`https://${BACKEND_DOMAIN_NAME}/rsvps`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `${BEARER_TOKEN_BACKEND}`,
@@ -95,7 +94,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         const userID = unhashUserID(hashedUserID);
 
         // Get user data to fetch slack_id
-        const userResponse = await fetch(getBackendUrl(`/users/${userID}`), {
+        const userResponse = await fetch(`https://${BACKEND_DOMAIN_NAME}/users/${userID}`, {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`
             }
