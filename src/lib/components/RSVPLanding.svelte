@@ -11,6 +11,7 @@
     /** @type {{ text: string, type: 'success' | 'error' } | null} */
     let message = $state(null);
     
+    let showSlackButton = $derived($page.data.flags?.showSlackButton);
     let platformEnabled = $derived($page.data.flags?.enablePlatform);
     
     // Image dimensions
@@ -76,7 +77,7 @@
             <RSVPForm bind:message bind:isHovered={submitHovered} />
         </div>
 
-        {#if platformEnabled}
+        {#if showSlackButton}
         <div class="anchored-button-wrapper">
             <div class="button-background"></div>
             <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
