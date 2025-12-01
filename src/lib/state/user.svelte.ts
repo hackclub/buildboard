@@ -5,6 +5,8 @@ export interface User {
     email: string;
     slack_id?: string;
     username?: string;
+    handle?: string;
+    avatar?: string;
     first_name?: string;
     last_name?: string;
     is_admin?: boolean;

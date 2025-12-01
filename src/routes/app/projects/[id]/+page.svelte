@@ -130,10 +130,11 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700"
+                        <label for="installation-id" class="block text-sm font-medium text-gray-700"
                             >Installation ID</label
                         >
                         <input
+                            id="installation-id"
                             type="text"
                             bind:value={installationId}
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
@@ -141,10 +142,11 @@
                         />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700"
+                        <label for="repo-path" class="block text-sm font-medium text-gray-700"
                             >Repository Path</label
                         >
                         <input
+                            id="repo-path"
                             type="text"
                             bind:value={repoPath}
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
