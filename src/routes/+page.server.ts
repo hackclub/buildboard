@@ -35,7 +35,7 @@ export const actions: Actions = {
 
             if (countResponse.ok) {
                 const count = await countResponse.json();
-                if (count >= 5) {
+                if (count >= 1000) {
                     return fail(429, { message: 'Too many requests' });
                 }
             }
