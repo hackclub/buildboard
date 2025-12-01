@@ -5,13 +5,9 @@ import { BACKEND_DOMAIN_NAME, BEARER_TOKEN_BACKEND } from '$env/static/private';
 export const GET: RequestHandler = async ({ url }) => {
     const skip = url.searchParams.get('skip') || '0';
     const limit = url.searchParams.get('limit') || '100';
-    const user_id = url.searchParams.get('user_id');
 
     try {
-        let apiUrl = `https://${BACKEND_DOMAIN_NAME}/projects?skip=${skip}&limit=${limit}`;
-        if (user_id) {
-            apiUrl += `&user_id=${user_id}`;
-        }
+        const apiUrl = `https://${BACKEND_DOMAIN_NAME}/projects?skip=${skip}&limit=${limit}`;
 
         const response = await fetch(apiUrl, {
             headers: {
@@ -24,7 +20,14 @@ export const GET: RequestHandler = async ({ url }) => {
         }
 
         const projects = await response.json();
-        return json(projects);
+        const sanitizedProjects = projects.map((project: Record<string, unknown>) => ({
+            project_name: project.project_name,
+            project_description: project.project_description,
+            attachment_urls: project.attachment_urls,
+            code_url: project.code_url,
+            live_url: project.live_url
+        }));
+        return json(sanitizedProjects);
     } catch (error) {
         console.error('Error fetching projects:', error);
         return json({ error: 'Internal server error' }, { status: 500 });
