@@ -5,10 +5,10 @@ let unleash: Unleash | null = null;
 let initializationFailed = false;
 
 // Mock Unleash instance that returns false for all flags
-const mockUnleash: Unleash = {
+const mockUnleash = {
     isEnabled: () => false,
     getVariant: () => ({ name: 'disabled', enabled: false }),
-} as Unleash;
+} as unknown as Unleash;
 
 export async function getUnleash(): Promise<Unleash> {
     // If we already failed to initialize, return mock immediately
@@ -52,7 +52,7 @@ export async function getUnleash(): Promise<Unleash> {
 
         unleash.on('ready', () => {
             console.log('[Unleash] Ready! Feature toggles have been fetched');
-            console.log('[Unleash] enable-platform flag is now:', unleash.isEnabled('enable-platform'));
+            console.log('[Unleash] enable-platform flag is now:', unleash?.isEnabled('enable-platform'));
         });
 
         unleash.on('synchronized', () => {

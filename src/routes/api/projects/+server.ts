@@ -8,11 +8,7 @@ export const GET: RequestHandler = async ({ url }) => {
     const limit = url.searchParams.get('limit') || '100';
 
     try {
-        let apiUrl = getBackendUrl(`/projects?skip=${skip}&limit=${limit}`);
-        if (user_id) {
-            apiUrl += `&user_id=${user_id}`;
-        }
-        const apiUrl = `https://${BACKEND_DOMAIN_NAME}/projects?skip=${skip}&limit=${limit}`;
+        const apiUrl = getBackendUrl(`/projects?skip=${skip}&limit=${limit}`);
 
         const response = await fetch(apiUrl, {
             headers: {
