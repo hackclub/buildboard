@@ -116,9 +116,8 @@
                         >
                             <div class={mediumSize ? "p-2 pb-10" : "p-4 pb-12"}>
                                 <a
-                                    href={project.live_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href={`/app/projects/${project.project_id}`}
+                                    class="hover:underline"
                                 >
                                     <h3
                                         class="{mediumSize

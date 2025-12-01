@@ -3,6 +3,7 @@ import { BEARER_TOKEN_BACKEND } from '$env/static/private';
 import { unhashUserID, getBackendUrl } from '$lib/server/auth';
 
 interface Project {
+    project_id: string;
     created_at: string;
     live_url: string;
     project_name: string;
@@ -33,7 +34,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
         }
 
         const projects = await projectsResponse.json();
-        
+
         return {
             projects: (projects || []) as Project[]
         };

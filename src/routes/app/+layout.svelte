@@ -35,7 +35,11 @@
     {:else if user}
         <div class="app-layout">
             <nav>
-                <div class="user-profile">
+                <a
+                    href={`/@${user.handle}`}
+                    class="user-profile"
+                    class:active={$page.url.pathname.includes("/@")}
+                >
                     <img
                         src={user.avatar ||
                             `https://ui-avatars.com/api/?name=${user.email}`}
@@ -43,7 +47,7 @@
                         class="avatar"
                     />
                     <span class="email">{user.email}</span>
-                </div>
+                </a>
                 <a
                     href="/app/projects"
                     class:active={$page.url.pathname.includes("/projects")}
@@ -95,10 +99,17 @@
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        padding-bottom: 1rem;
+        padding: 0.5rem; /* Match other links */
+        padding-bottom: 1rem; /* Keep original spacing */
         border-bottom: 1px solid #e4e4e7;
         font-size: 0.9rem;
         overflow: hidden;
+        color: #52525b; /* Match default link color */
+        text-decoration: none;
+    }
+    .user-profile:hover {
+        background: #e4e4e7;
+        color: #000;
     }
     .avatar {
         width: 32px;
