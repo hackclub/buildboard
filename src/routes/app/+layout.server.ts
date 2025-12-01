@@ -16,7 +16,14 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         return { user: null };
     }
 
-    const userID = unhashUserID(hashedUserID);
+    let userID: string | null = null;
+    try {
+        userID = unhashUserID(hashedUserID);
+    } catch (error) {
+        console.error('Failed to unhash userID, clearing cookie:', error);
+        cookies.delete('userID', { path: '/' });
+        return { user: null };
+    }
 
     if (!userID) {
         return { user: null };
