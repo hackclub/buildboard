@@ -65,18 +65,23 @@ export const actions: Actions = {
             });
 
 
-            const result = await response.json();
-
-            if (response.ok) {
-                if (result.message === 'collisions detected') {
-                    return { success: true, collision: true };
-                }
-                return { success: true };
-            } else {
+            if (!response.ok) {
                 console.error('RSVP backend failed:', response.status);
-                const errorMessage = result.message || result.error || (typeof result.detail === 'string' ? result.detail : null) || `Something went wrong (${response.status})`;
+                const text = await response.text();
+                let errorMessage = `Something went wrong (${response.status})`;
+                try {
+                    const errorJson = JSON.parse(text);
+                    errorMessage = errorJson.message || errorJson.error || (typeof errorJson.detail === 'string' ? errorJson.detail : null) || errorMessage;
+                } catch {
+                    if (text) errorMessage = text;
+                }
                 return fail(response.status, { message: errorMessage });
             }
+
+            const result = await response.json();
+            return result.message === 'collisions detected'
+                ? { success: true, collision: true }
+                : { success: true };
         } catch (error) {
             console.error('RSVP error:', error);
             return fail(500, { message: 'Internal server error' });
