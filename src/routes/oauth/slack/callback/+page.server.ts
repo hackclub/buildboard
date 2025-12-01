@@ -77,7 +77,6 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         const firstName = tokenPayload.name;
 
         const backendUrl = getBackendUrl(`/users/by-email/${encodeURIComponent(email)}`);
-        console.log('Fetching user from:', backendUrl);
         const userResponse = await fetch(backendUrl, {
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`

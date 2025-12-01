@@ -5,11 +5,19 @@ export interface User {
     email: string;
     slack_id?: string;
     username?: string;
+    first_name?: string;
+    last_name?: string;
     is_admin?: boolean;
     is_reviewer?: boolean;
     is_idv?: boolean;
     is_slack_member?: boolean;
-    [key: string]: any;
+    address_line_1?: string | null;
+    address_line_2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    country?: string | null;
+    post_code?: string | null;
+    birthday?: string | null;
 }
 
 let user = $state<User | null>(null);

@@ -5,6 +5,22 @@
     export let data: PageData;
 
     let { project, readme } = data;
+    
+    function getSafeUrl(url: string | null | undefined): string | null {
+        if (!url) return null;
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                return url;
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    }
+    
+    $: safeLiveUrl = getSafeUrl(project.live_url);
+    $: safeCodeUrl = getSafeUrl(project.code_url);
     let linking = false;
     let installationId = "";
     let repoPath = "";
@@ -18,7 +34,7 @@
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/projects/${project.project_id}/github/link`,
+                `/api/projects/${project.project_id}/github/link`,
                 {
                     method: "POST",
                     headers: {
@@ -57,17 +73,19 @@
         </h1>
         <p class="text-xl text-neutral-600">{project.project_description}</p>
         <div class="mt-4 flex space-x-4">
-            {#if project.live_url}
+            {#if safeLiveUrl}
                 <a
-                    href={project.live_url}
+                    href={safeLiveUrl}
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="text-blue-600 hover:underline">Live Demo</a
                 >
             {/if}
-            {#if project.code_url}
+            {#if safeCodeUrl}
                 <a
-                    href={project.code_url}
+                    href={safeCodeUrl}
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="text-blue-600 hover:underline">Source Code</a
                 >
             {/if}

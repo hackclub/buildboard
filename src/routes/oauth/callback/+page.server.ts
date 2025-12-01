@@ -92,7 +92,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         if (!user || !user.user_id) {
             console.log('User not found for email, creating new user');
             
-            const hasAddress = userIDV.identity.addresses?.[0]?.line_1;
+            const hasAddressData = !!userIDV.identity.addresses?.[0]?.line_1;
             const slackId = userIDV.identity.slack_id || null;
             
             const createUserResponse = await fetch(getBackendUrl('/users'), {
@@ -107,7 +107,7 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                     slack_id: slackId,
                     email: userIDV.identity.primary_email,
                     is_admin: false,
-                    is_idv: !!hasAddress,
+                    is_idv: hasAddressData,
                     is_slack_member: !!slackId,
                     address_line_1: userIDV.identity.addresses?.[0]?.line_1 || null,
                     address_line_2: userIDV.identity.addresses?.[0]?.line_2 || null,
@@ -121,9 +121,6 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
 
             if (!createUserResponse.ok) {
                 console.error('Failed to create user', await createUserResponse.text());
-                // Fallback or proceed? If creation fails, we can't really proceed with login. 
-                // But since we made fields optional, it SHOULD succeed now.
-                // If it still fails, we probably shouldn't redirect with that specific IDV error message.
                 throw redirect(302, '/?error=' + encodeURIComponent('Login failed. Please try again.'));
             }
 

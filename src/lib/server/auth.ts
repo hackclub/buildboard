@@ -17,8 +17,7 @@ export function getBackendUrl(path: string): string {
     let baseUrl = BACKEND_DOMAIN_NAME;
     
     if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-         const protocol = (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) ? 'http' : 'https';
-         baseUrl = `${protocol}://${baseUrl}`;
+        throw new Error('BACKEND_DOMAIN_NAME must include protocol (http:// or https://)');
     }
     
     // Remove trailing slash from base if present

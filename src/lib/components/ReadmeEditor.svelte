@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { marked } from "marked";
+    import DOMPurify from "dompurify";
 
     export let projectId: string;
     export let initialContent: string = "";
@@ -13,7 +14,7 @@
     let message = "";
     let errorMessage = "";
 
-    $: previewHtml = marked.parse(content);
+    $: previewHtml = DOMPurify.sanitize(marked.parse(content) as string);
 
     async function saveReadme() {
         saving = true;

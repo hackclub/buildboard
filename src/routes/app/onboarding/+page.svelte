@@ -2,6 +2,8 @@
     import { onMount } from "svelte";
     import { getUser } from "$lib/state/user.svelte";
 
+    const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
+
     let { data } = $props();
     let hackatimeAcknowledged = $state(data.hackatimeAcknowledged);
     let isIDV = $state(data.isIDV);
@@ -9,13 +11,13 @@
     function acknowledgeHackatime() {
         hackatimeAcknowledged = true;
         document.cookie =
-            "hackatimeAcknowledged=true; path=/; max-age=" + 30 * 24 * 60 * 60;
+            "hackatimeAcknowledged=true; path=/; max-age=" + THIRTY_DAYS_IN_SECONDS;
         checkCompletion();
     }
 
     function skipOnboarding() {
         document.cookie =
-            "onboardingSkipped=true; path=/; max-age=" + 30 * 24 * 60 * 60;
+            "onboardingSkipped=true; path=/; max-age=" + THIRTY_DAYS_IN_SECONDS;
         window.location.href = "/app/projects";
     }
 
