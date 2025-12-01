@@ -19,7 +19,14 @@ export const load: PageServerLoad = async ({ cookies }) => {
         return { projects: [] as Project[] };
     }
 
-    const userID = unhashUserID(hashedUserID);
+    let userID: string | null = null;
+    try {
+        userID = unhashUserID(hashedUserID);
+    } catch (error) {
+        console.error('Failed to unhash userID, clearing cookie:', error);
+        cookies.delete('userID', { path: '/' });
+        return { projects: [] as Project[] };
+    }
 
     try {
         // Fetch user's projects

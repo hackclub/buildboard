@@ -46,7 +46,14 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
         
-        const userID = unhashUserID(hashedUserID);
+        let userID: string | null = null;
+        try {
+            userID = unhashUserID(hashedUserID);
+        } catch (error) {
+            console.error('Failed to unhash userID, clearing cookie:', error);
+            cookies.delete('userID', { path: '/' });
+            return json({ error: 'Unauthorized' }, { status: 401 });
+        }
         const data = await request.json();
         const { projectTitle, projectDescription, projectType } = data;
         
