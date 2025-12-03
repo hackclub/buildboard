@@ -204,28 +204,26 @@
 
     .slide-content {
         position: absolute;
-        bottom: 120px;
+        top: 15%;
         left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
+        right: 25%;
+        text-align: left;
         z-index: 10;
-        width: 90%;
-        max-width: 800px;
     }
 
     .slide-title {
-        font-size: clamp(2rem, 6vw, 4rem);
+        font-size: clamp(1.5rem, 4vw, 2.5rem);
         font-weight: bold;
         color: white;
-        margin: 0 0 1rem 0;
-        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        margin: 0 0 4px 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     .slide-subtitle {
-        font-size: clamp(1rem, 2.5vw, 1.5rem);
-        color: rgba(255, 255, 255, 0.9);
+        font-size: clamp(0.875rem, 2vw, 1rem);
+        color: rgba(255, 255, 255, 0.8);
         margin: 0;
-        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
     }
 
     .progress-bar {
@@ -298,7 +296,9 @@
 
     @media (max-width: 640px) {
         .slide-content {
-            bottom: 140px;
+            top: 20%;
+            left: 10%;
+            right: 10%;
         }
 
         .progress-bar {
