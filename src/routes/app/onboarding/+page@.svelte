@@ -18,7 +18,7 @@
         },
         // Add more slides here as needed
         {
-            image: "/IMG_3373.png",
+            image: "/IMG_3378.jpg",
             title: "Track Your Projects",
             subtitle: "Log your coding hours and showcase your work"
         },
@@ -205,7 +205,7 @@
     .slide-content {
         position: absolute;
         top: 15%;
-        left: 50%;
+        left: 40%;
         right: 25%;
         text-align: left;
         z-index: 10;
