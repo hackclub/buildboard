@@ -1,6 +1,5 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
-import { CDN_API_KEY } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
@@ -15,11 +14,11 @@ export const POST: RequestHandler = async ({ request }) => {
         const buffer = await file.arrayBuffer();
         const base64 = Buffer.from(buffer).toString('base64');
         
-        // Upload to Hack Club CDN
+        // Upload to Hack Club CDN (beans is the public API token per docs)
         const cdnResponse = await fetch('https://cdn.hackclub.com/api/v3/new', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${CDN_API_KEY}`,
+                'Authorization': 'Bearer beans',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify([buffer])
