@@ -17,7 +17,15 @@ export const POST: RequestHandler = async ({ params, request, cookies }) => {
     if (!hashedUserID) {
         return json({ error: 'Not authenticated' }, { status: 401 });
     }
-    const userID = unhashUserID(hashedUserID);
+    
+    let userID: string;
+    try {
+        userID = unhashUserID(hashedUserID);
+    } catch (error) {
+        console.error('Failed to unhash userID, clearing cookie:', error);
+        cookies.delete('userID', { path: '/' });
+        return json({ error: 'Not authenticated' }, { status: 401 });
+    }
     
     try {
         const data = await request.json();
