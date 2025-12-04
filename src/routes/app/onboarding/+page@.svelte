@@ -4,59 +4,130 @@
     import { onMount } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
 
-    const dialogues = [
-        "Welcome to BuildBoard.",
-        "How many teenagers can say their project was on a billboard in Times Square?",
-        "With BuildBoard, you commit to one project — and we watch it rise to the top of Hacker News, YouTube, and the NYC Billboard.",
-        "Your project will progress through four milestones:",
-        "Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
-        "Ready to build something worth putting on a billboard?"
+    const characters = {
+        male: { name: "ALEX", image: "/slides/male_char.png" },
+        female: { name: "MAYA", image: "/slides/female_char.png" }
+    };
+
+    const slides = [
+        {
+            image: "/slides/slide_one.png",
+            text: "Welcome..... sooo you wanna be known for building cool shit?",
+            showCharacterSelect: false
+        },
+        {
+            image: "/slides/slide_one.png",
+            text: "Good for you, your guide is here to help you.",
+            showCharacterSelect: true
+        },
+        {
+            image: "/slides/slide_two.jpg",
+            text: "BuildBoard is your chance. Commit to one project and watch it go through a series of milestones.",
+            showCharacterSelect: false
+        },
+        {
+            image: "/slides/slide_two.jpg",
+            text: "See your project on Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
+            showCharacterSelect: false
+        }
     ];
 
     let step = $state(0);
     let displayedText = $state("");
     let isTyping = $state(false);
+    let showCharacterOptions = $state(false);
     let typewriterTimeout: ReturnType<typeof setTimeout>;
+    let selectedCharacter = $state<'male' | 'female' | null>(null);
 
     function typeText(text: string) {
         isTyping = true;
         displayedText = "";
+        showCharacterOptions = false;
         let i = 0;
         
         function typeNextChar() {
             if (i < text.length) {
-                displayedText += text[i];
+                const char = text[i];
+                
+                // Check if we hit "." after "Welcome" - handle the ellipsis naturally
+                if (displayedText === "Welcome" && text[i] === ".") {
+                    // Count how many dots follow
+                    let dotCount = 0;
+                    while (text[i + dotCount] === ".") dotCount++;
+                    
+                    // Type dots slowly with slight pauses between each
+                    let dotIndex = 0;
+                    function typeDot() {
+                        if (dotIndex < dotCount) {
+                            displayedText += ".";
+                            dotIndex++;
+                            i++;
+                            // Slower between dots, with increasing delay for dramatic effect
+                            const delay = 200 + (dotIndex * 80);
+                            typewriterTimeout = setTimeout(typeDot, delay);
+                        } else {
+                            // Brief pause after all dots, then continue
+                            typewriterTimeout = setTimeout(() => {
+                                displayedText += " ";
+                                typeNextChar();
+                            }, 400);
+                        }
+                    }
+                    typeDot();
+                    return;
+                }
+                
+                displayedText += char;
                 i++;
                 typewriterTimeout = setTimeout(typeNextChar, 30);
             } else {
                 isTyping = false;
+                // Show character options after typing finishes on character select slide
+                if (slides[step].showCharacterSelect) {
+                    setTimeout(() => {
+                        showCharacterOptions = true;
+                    }, 600);
+                }
             }
         }
         
         typeNextChar();
     }
 
+    function selectCharacter(character: 'male' | 'female') {
+        selectedCharacter = character;
+        nextStep();
+    }
+
     function nextStep() {
         if (isTyping) {
             clearTimeout(typewriterTimeout);
-            displayedText = dialogues[step];
+            displayedText = slides[step].text;
             isTyping = false;
+            return;
+        }
+
+        // Don't advance if on character select and no character chosen
+        if (slides[step].showCharacterSelect && !selectedCharacter) {
             return;
         }
 
         step++;
 
-        if (step >= dialogues.length) {
+        if (step >= slides.length) {
             completeOnboarding();
             return;
         }
 
-        typeText(dialogues[step]);
+        typeText(slides[step].text);
     }
 
     function completeOnboarding() {
         const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
         document.cookie = `onboardingComplete=true; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
+        if (selectedCharacter) {
+            document.cookie = `buildboard_character=${selectedCharacter}; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
+        }
         goto("/app/projects");
     }
 
@@ -69,9 +140,17 @@
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === " " || event.key === "Enter") {
             event.preventDefault();
-            nextStep();
+            if (!slides[step].showCharacterSelect || selectedCharacter) {
+                nextStep();
+            }
         } else if (event.key === "Escape") {
             skipOnboarding();
+        }
+    }
+
+    function handleMainClick() {
+        if (!slides[step].showCharacterSelect || selectedCharacter) {
+            nextStep();
         }
     }
 
@@ -82,27 +161,66 @@
                 goto("/");
                 return;
             }
-            typeText(dialogues[0]);
+            typeText(slides[0].text);
         }
     });
+
+    let speakerName = $derived(selectedCharacter ? characters[selectedCharacter].name : "BUILDBOARD");
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="onboarding" onclick={nextStep} role="button" tabindex="0">
-    <!-- Background -->
-    <img src="/IMG_3373.png" alt="" class="background-image" />
+<div class="onboarding" onclick={handleMainClick} role="button" tabindex="0">
+    <!-- Background - changes with each slide -->
+    {#each slides as slide, index}
+        <img 
+            src={slide.image} 
+            alt="" 
+            class="background-image" 
+            class:active={index === step}
+        />
+    {/each}
     <div class="background-overlay"></div>
+
+    <!-- Character Selection - shows after typing finishes -->
+    {#if showCharacterOptions && !selectedCharacter}
+        <div class="character-select">
+            <p class="select-prompt">Choose your guide</p>
+            <div class="characters">
+                <button class="character-option" onclick={(e) => { e.stopPropagation(); selectCharacter('male'); }}>
+                    <img src={characters.male.image} alt="Alex" class="character-image" />
+                    <span class="character-name">{characters.male.name}</span>
+                </button>
+                <button class="character-option" onclick={(e) => { e.stopPropagation(); selectCharacter('female'); }}>
+                    <img src={characters.female.image} alt="Maya" class="character-image" />
+                    <span class="character-name">{characters.female.name}</span>
+                </button>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Selected character display - shows after selection -->
+    {#if selectedCharacter}
+        <div class="selected-character">
+            <img src={characters[selectedCharacter].image} alt={characters[selectedCharacter].name} class="guide-image" />
+        </div>
+    {/if}
 
     <!-- Dialogue box at bottom like Midnight -->
     <div class="dialogue-box">
         <div class="dialogue-label">
-            <span class="dialogue-speaker">BUILDBOARD</span>
+            <span class="dialogue-speaker">{speakerName}</span>
         </div>
         <div class="dialogue-content">
-            <p class="dialogue-text">{displayedText}<span class="cursor" class:typing={isTyping}>|</span></p>
-            <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
+            <p class="dialogue-text">
+                {displayedText}<span class="cursor" class:typing={isTyping}>|</span>
+            </p>
+            {#if showCharacterOptions && !selectedCharacter}
+                <p class="dialogue-hint">Choose a character above</p>
+            {:else}
+                <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
+            {/if}
         </div>
     </div>
 
@@ -129,6 +247,12 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .background-image.active {
+        opacity: 1;
     }
 
     .background-overlay {
@@ -140,6 +264,90 @@
             rgba(0, 0, 0, 0.2) 60%,
             rgba(0, 0, 0, 0.7) 100%
         );
+    }
+
+    /* Character Selection - Right corner like Midnight */
+    .character-select {
+        position: fixed;
+        bottom: 160px;
+        right: 60px;
+        z-index: 50;
+        text-align: center;
+    }
+
+    .select-prompt {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .characters {
+        display: flex;
+        gap: 32px;
+        align-items: flex-end;
+    }
+
+    .character-option {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .character-option:hover {
+        transform: translateY(-12px);
+        filter: brightness(1.2);
+    }
+
+    .character-image {
+        width: 200px;
+        height: 350px;
+        object-fit: contain;
+    }
+
+    .character-name {
+        display: block;
+        margin-top: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 1px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .character-option:hover .character-name {
+        opacity: 1;
+    }
+
+    /* Selected character - prominent display */
+    .selected-character {
+        position: fixed;
+        bottom: 160px;
+        right: 60px;
+        z-index: 50;
+        animation: characterEnter 0.5s ease-out;
+    }
+
+    .guide-image {
+        width: 280px;
+        height: 450px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.4));
+    }
+
+    @keyframes characterEnter {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 
     /* Dialogue box - Midnight style at bottom */
@@ -228,6 +436,30 @@
     }
 
     @media (max-width: 640px) {
+        .character-select {
+            bottom: 150px;
+            right: 16px;
+        }
+
+        .characters {
+            gap: 16px;
+        }
+
+        .character-image {
+            width: 120px;
+            height: 220px;
+        }
+
+        .selected-character {
+            bottom: 150px;
+            right: 16px;
+        }
+
+        .guide-image {
+            width: 180px;
+            height: 300px;
+        }
+
         .dialogue-box {
             padding: 24px 24px;
             min-height: 140px;
