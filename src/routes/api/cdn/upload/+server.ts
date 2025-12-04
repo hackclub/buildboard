@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request }) => {
         const buffer = await file.arrayBuffer();
         const base64 = Buffer.from(buffer).toString('base64');
         
-        // Upload to Hack Club CDN
+        // Upload to Hack Club CDN (beans is the public API token per docs)
         const cdnResponse = await fetch('https://cdn.hackclub.com/api/v3/new', {
             method: 'POST',
             headers: {

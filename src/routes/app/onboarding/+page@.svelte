@@ -4,59 +4,162 @@
     import { onMount } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
 
-    interface Slide {
-        image: string;
-        title?: string;
-        subtitle?: string;
+    interface Author {
+        user_id: string;
+        first_name: string;
+        last_name: string;
+        slack_id: string | null;
+        email: string | null;
+        avatar_url: string | null;
+        bio: string | null;
+        role: string;
+        displayName?: string;
     }
 
-    const slides: Slide[] = [
+    // Hardcoded display names for authors
+    const AUTHOR_DISPLAY_NAMES: Record<string, string> = {
+        'dhamari@hackclub.com': 'Dhamari',
+        'alexvd@hackclub.com': 'Alex'
+    };
+
+    function getDisplayName(author: Author): string {
+        return AUTHOR_DISPLAY_NAMES[author.email || ''] || author.first_name;
+    }
+
+    const slides = [
         {
-            image: "/IMG_3373.png",
-            title: "Welcome to BuildBoard",
-            subtitle: "Click anywhere to continue"
+            image: "/slides/slide_one.png",
+            text: "Welcome..... sooo you wanna be known for building cool shit?",
+            showCharacterSelect: false
         },
-        // Add more slides here as needed
         {
-            image: "/IMG_3378.jpg",
-            title: "Track Your Projects",
-            subtitle: "Log your coding hours and showcase your work"
+            image: "/slides/slide_one.png",
+            text: "Good for you, your guide is here to help you.",
+            showCharacterSelect: true
         },
         {
-            image: "/IMG_3373.png",
-            title: "Get Started",
-            subtitle: "Let's build something amazing together"
+            image: "/slides/slide_two.jpg",
+            text: "BuildBoard is your chance. Commit to one project and watch it go through a series of milestones.",
+            showCharacterSelect: false
+        },
+        {
+            image: "/slides/slide_two.jpg",
+            text: "See your project on Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
+            showCharacterSelect: false
         }
     ];
 
-    let currentSlide = $state(0);
-    let isTransitioning = $state(false);
+    let step = $state(0);
+    let displayedText = $state("");
+    let isTyping = $state(false);
+    let showCharacterOptions = $state(false);
+    let typewriterTimeout: ReturnType<typeof setTimeout>;
+    let selectedAuthor = $state<Author | null>(null);
+    let authors = $state<Author[]>([]);
+    let loadingAuthors = $state(true);
 
-    function nextSlide() {
-        if (isTransitioning) return;
+    async function fetchAuthors() {
+        try {
+            const res = await fetch('/api/guides');
+            if (res.ok) {
+                authors = await res.json();
+            }
+        } catch (e) {
+            console.error('Failed to fetch authors:', e);
+        } finally {
+            loadingAuthors = false;
+        }
+    }
+
+    function typeText(text: string) {
+        isTyping = true;
+        displayedText = "";
+        showCharacterOptions = false;
+        let i = 0;
         
-        if (currentSlide >= slides.length - 1) {
+        function typeNextChar() {
+            if (i < text.length) {
+                const char = text[i];
+                
+                if (displayedText === "Welcome" && text[i] === ".") {
+                    let dotCount = 0;
+                    while (text[i + dotCount] === ".") dotCount++;
+                    
+                    let dotIndex = 0;
+                    function typeDot() {
+                        if (dotIndex < dotCount) {
+                            displayedText += ".";
+                            dotIndex++;
+                            i++;
+                            const delay = 200 + (dotIndex * 80);
+                            typewriterTimeout = setTimeout(typeDot, delay);
+                        } else {
+                            typewriterTimeout = setTimeout(() => {
+                                displayedText += " ";
+                                typeNextChar();
+                            }, 400);
+                        }
+                    }
+                    typeDot();
+                    return;
+                }
+                
+                displayedText += char;
+                i++;
+                typewriterTimeout = setTimeout(typeNextChar, 30);
+            } else {
+                isTyping = false;
+                if (slides[step].showCharacterSelect) {
+                    setTimeout(() => {
+                        showCharacterOptions = true;
+                    }, 600);
+                }
+            }
+        }
+        
+        typeNextChar();
+    }
+
+    async function selectAuthor(author: Author) {
+        selectedAuthor = author;
+        
+        // Save to backend
+        try {
+            const res = await fetch('/api/guides/select', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author_id: author.user_id })
+            });
+            if (!res.ok) {
+                console.error('Failed to save author selection');
+            }
+        } catch (e) {
+            console.error('Error saving author:', e);
+        }
+        
+        nextStep();
+    }
+
+    function nextStep() {
+        if (isTyping) {
+            clearTimeout(typewriterTimeout);
+            displayedText = slides[step].text;
+            isTyping = false;
+            return;
+        }
+
+        if (slides[step].showCharacterSelect && !selectedAuthor) {
+            return;
+        }
+
+        step++;
+
+        if (step >= slides.length) {
             completeOnboarding();
             return;
         }
 
-        isTransitioning = true;
-        currentSlide++;
-        
-        setTimeout(() => {
-            isTransitioning = false;
-        }, 300);
-    }
-
-    function previousSlide() {
-        if (isTransitioning || currentSlide === 0) return;
-        
-        isTransitioning = true;
-        currentSlide--;
-        
-        setTimeout(() => {
-            isTransitioning = false;
-        }, 300);
+        typeText(slides[step].text);
     }
 
     function completeOnboarding() {
@@ -72,14 +175,19 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "ArrowRight" || event.key === " " || event.key === "Enter") {
+        if (event.key === " " || event.key === "Enter") {
             event.preventDefault();
-            nextSlide();
-        } else if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            previousSlide();
+            if (!slides[step].showCharacterSelect || selectedAuthor) {
+                nextStep();
+            }
         } else if (event.key === "Escape") {
             skipOnboarding();
+        }
+    }
+
+    function handleMainClick() {
+        if (!slides[step].showCharacterSelect || selectedAuthor) {
+            nextStep();
         }
     }
 
@@ -88,60 +196,74 @@
             const user = await updateUser();
             if (!user) {
                 goto("/");
+                return;
             }
+            await fetchAuthors();
+            typeText(slides[0].text);
         }
     });
+
+    let speakerName = $derived(selectedAuthor ? getDisplayName(selectedAuthor).toUpperCase() : "BUILDBOARD");
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="onboarding" onclick={nextSlide} role="button" tabindex="0">
+<div class="onboarding" onclick={handleMainClick} role="button" tabindex="0">
+    <!-- Background - changes with each slide -->
     {#each slides as slide, index}
-        <div 
-            class="slide"
-            class:active={index === currentSlide}
-            class:prev={index < currentSlide}
-            class:next={index > currentSlide}
-        >
-            <img src={slide.image} alt="" class="slide-image" />
-            <div class="slide-overlay"></div>
-            <div class="slide-content">
-                {#if slide.title}
-                    <h1 class="slide-title">{slide.title}</h1>
-                {/if}
-                {#if slide.subtitle}
-                    <p class="slide-subtitle">{slide.subtitle}</p>
-                {/if}
+        <img 
+            src={slide.image} 
+            alt="" 
+            class="background-image" 
+            class:active={index === step}
+        />
+    {/each}
+    <div class="background-overlay"></div>
+
+    <!-- Character Selection - shows after typing finishes -->
+    {#if showCharacterOptions && !selectedAuthor && !loadingAuthors}
+        <div class="character-select">
+            <p class="select-prompt">Choose your guide</p>
+            <div class="characters">
+                {#each authors as author}
+                    <button class="character-option" onclick={(e) => { e.stopPropagation(); selectAuthor(author); }}>
+                        <img src={author.avatar_url || '/slides/male_char.png'} alt={getDisplayName(author)} class="character-image" />
+                        <span class="character-name">{getDisplayName(author).toUpperCase()}</span>
+                    </button>
+                {/each}
             </div>
         </div>
-    {/each}
+    {/if}
 
-    <!-- Progress indicators -->
-    <div class="progress-bar">
-        {#each slides as _, index}
-            <button
-                class="progress-dot"
-                class:active={index === currentSlide}
-                class:completed={index < currentSlide}
-                onclick={(e) => {
-                    e.stopPropagation();
-                    currentSlide = index;
-                }}
-                aria-label={`Go to slide ${index + 1}`}
-            ></button>
-        {/each}
+    <!-- Selected character display - shows after selection -->
+    {#if selectedAuthor}
+        <div class="selected-character">
+            <img src={selectedAuthor.avatar_url || '/slides/male_char.png'} alt={selectedAuthor.first_name} class="guide-image" />
+        </div>
+    {/if}
+
+    <!-- Dialogue box at bottom like Midnight -->
+    <div class="dialogue-box">
+        <div class="dialogue-label">
+            <span class="dialogue-speaker">{speakerName}</span>
+        </div>
+        <div class="dialogue-content">
+            <p class="dialogue-text">
+                {displayedText}<span class="cursor" class:typing={isTyping}>|</span>
+            </p>
+            {#if showCharacterOptions && !selectedAuthor}
+                <p class="dialogue-hint">Choose a guide above</p>
+            {:else}
+                <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
+            {/if}
+        </div>
     </div>
 
     <!-- Skip button -->
     <button class="skip-button" onclick={(e) => { e.stopPropagation(); skipOnboarding(); }}>
-        Skip &rarr;
+        Skip →
     </button>
-
-    <!-- Navigation hint -->
-    <div class="nav-hint">
-        <span>Click or press Space to continue</span>
-    </div>
 </div>
 
 <style>
@@ -155,116 +277,181 @@
         overflow: hidden;
     }
 
-    .slide {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-        pointer-events: none;
-    }
-
-    .slide.active {
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-    }
-
-    .slide.prev {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-
-    .slide.next {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-
-    .slide-image {
+    .background-image {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.5s ease;
     }
 
-    .slide-overlay {
+    .background-image.active {
+        opacity: 1;
+    }
+
+    .background-overlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.2) 0%,
-            rgba(0, 0, 0, 0.1) 40%,
-            rgba(0, 0, 0, 0.4) 80%,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.2) 60%,
             rgba(0, 0, 0, 0.7) 100%
         );
     }
 
-    .slide-content {
-        position: absolute;
-        top: 15%;
-        left: 40%;
-        right: 25%;
-        text-align: left;
-        z-index: 10;
+    /* Character Selection - Right corner like Midnight */
+    .character-select {
+        position: fixed;
+        bottom: 160px;
+        right: 60px;
+        z-index: 50;
+        text-align: center;
     }
 
-    .slide-title {
-        font-size: clamp(1.5rem, 4vw, 2.5rem);
-        font-weight: bold;
-        color: white;
-        margin: 0 0 4px 0;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    .select-prompt {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
 
-    .slide-subtitle {
-        font-size: clamp(0.875rem, 2vw, 1rem);
-        color: rgba(255, 255, 255, 0.8);
-        margin: 0;
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
-    }
-
-    .progress-bar {
-        position: absolute;
-        bottom: 60px;
-        left: 50%;
-        transform: translateX(-50%);
+    .characters {
         display: flex;
-        gap: 12px;
-        z-index: 20;
+        gap: 32px;
+        align-items: flex-end;
     }
 
-    .progress-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.6);
+    .character-option {
+        background: none;
+        border: none;
+        padding: 0;
         cursor: pointer;
         transition: all 0.3s ease;
-        padding: 0;
     }
 
-    .progress-dot:hover {
-        background: rgba(255, 255, 255, 0.6);
-        transform: scale(1.2);
+    .character-option:hover {
+        transform: translateY(-12px);
+        filter: brightness(1.2);
     }
 
-    .progress-dot.active {
-        background: white;
-        border-color: white;
-        transform: scale(1.2);
+    .character-image {
+        width: 200px;
+        height: 350px;
+        object-fit: contain;
     }
 
-    .progress-dot.completed {
-        background: rgba(255, 255, 255, 0.8);
-        border-color: white;
+    .character-name {
+        display: block;
+        margin-top: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 1px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
-    .skip-button {
+    .character-option:hover .character-name {
+        opacity: 1;
+    }
+
+    /* Selected character - prominent display */
+    .selected-character {
+        position: fixed;
+        bottom: 160px;
+        right: 60px;
+        z-index: 50;
+        animation: characterEnter 0.5s ease-out;
+    }
+
+    .guide-image {
+        width: 280px;
+        height: 450px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.4));
+    }
+
+    @keyframes characterEnter {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Dialogue box - Midnight style at bottom */
+    .dialogue-box {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1c1c1c;
+        padding: 32px 50px;
+        min-height: 160px;
+        z-index: 100;
+    }
+
+    .dialogue-label {
         position: absolute;
+        top: -24px;
+        left: 50px;
+        background: #e94560;
+        padding: 8px 20px;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .dialogue-speaker {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+
+    .dialogue-content {
+        max-width: 900px;
+    }
+
+    .dialogue-text {
+        font-size: 1.75rem;
+        color: white;
+        margin: 0;
+        line-height: 1.5;
+        font-family: inherit;
+    }
+
+    .cursor {
+        opacity: 1;
+        animation: blink 0.7s infinite;
+    }
+
+    .cursor.typing {
+        animation: none;
+        opacity: 1;
+    }
+
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+
+    .dialogue-hint {
+        font-size: 0.875rem;
+        color: #666;
+        margin: 16px 0 0 0;
+        text-align: right;
+    }
+
+    /* Skip button */
+    .skip-button {
+        position: fixed;
         top: 24px;
         right: 24px;
         background: rgba(0, 0, 0, 0.3);
@@ -276,7 +463,7 @@
         font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
-        z-index: 20;
+        z-index: 200;
     }
 
     .skip-button:hover {
@@ -284,25 +471,48 @@
         border-color: rgba(255, 255, 255, 0.4);
     }
 
-    .nav-hint {
-        position: absolute;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.875rem;
-        z-index: 20;
-    }
-
     @media (max-width: 640px) {
-        .slide-content {
-            top: 20%;
-            left: 10%;
-            right: 10%;
+        .character-select {
+            bottom: 150px;
+            right: 16px;
         }
 
-        .progress-bar {
-            bottom: 80px;
+        .characters {
+            gap: 16px;
+        }
+
+        .character-image {
+            width: 120px;
+            height: 220px;
+        }
+
+        .selected-character {
+            bottom: 150px;
+            right: 16px;
+        }
+
+        .guide-image {
+            width: 180px;
+            height: 300px;
+        }
+
+        .dialogue-box {
+            padding: 24px 24px;
+            min-height: 140px;
+        }
+
+        .dialogue-label {
+            left: 24px;
+            top: -20px;
+            padding: 6px 14px;
+        }
+
+        .dialogue-speaker {
+            font-size: 0.75rem;
+        }
+
+        .dialogue-text {
+            font-size: 1.25rem;
         }
 
         .skip-button {
