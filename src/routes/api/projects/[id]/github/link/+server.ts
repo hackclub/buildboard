@@ -1,10 +1,23 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { BEARER_TOKEN_BACKEND } from '$env/static/private';
-import { getBackendUrl } from '$lib/server/auth';
+import { getBackendUrl, unhashUserID } from '$lib/server/auth';
 
-export const POST: RequestHandler = async ({ params, request }) => {
+/**
+ * Link a GitHub repository to a project.
+ * 
+ * SECURITY: Passes x-user-id header so the backend can verify the user owns this project.
+ * Without this, any authenticated user could hijack anyone's project's GitHub integration (IDOR vulnerability).
+ */
+export const POST: RequestHandler = async ({ params, request, cookies }) => {
     const { id } = params;
+    
+    // Get the authenticated user's ID from their session cookie
+    const hashedUserID = cookies.get('userID');
+    if (!hashedUserID) {
+        return json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    const userID = unhashUserID(hashedUserID);
     
     try {
         const data = await request.json();
@@ -13,7 +26,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
             method: 'POST',
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-User-ID': userID  // SECURITY: Backend uses this to verify project ownership
             },
             body: JSON.stringify(data)
         });
