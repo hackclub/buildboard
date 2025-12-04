@@ -4,59 +4,54 @@
     import { onMount } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
 
-    interface Slide {
-        image: string;
-        title?: string;
-        subtitle?: string;
-    }
-
-    const slides: Slide[] = [
-        {
-            image: "/IMG_3373.png",
-            title: "Welcome to BuildBoard",
-            subtitle: "Click anywhere to continue"
-        },
-        // Add more slides here as needed
-        {
-            image: "/IMG_3378.jpg",
-            title: "Track Your Projects",
-            subtitle: "Log your coding hours and showcase your work"
-        },
-        {
-            image: "/IMG_3373.png",
-            title: "Get Started",
-            subtitle: "Let's build something amazing together"
-        }
+    const dialogues = [
+        "Welcome to BuildBoard.",
+        "How many teenagers can say their project was on a billboard in Times Square?",
+        "With BuildBoard, you commit to one project — and we watch it rise to the top of Hacker News, YouTube, and the NYC Billboard.",
+        "Your project will progress through four milestones:",
+        "Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
+        "Ready to build something worth putting on a billboard?"
     ];
 
-    let currentSlide = $state(0);
-    let isTransitioning = $state(false);
+    let step = $state(0);
+    let displayedText = $state("");
+    let isTyping = $state(false);
+    let typewriterTimeout: ReturnType<typeof setTimeout>;
 
-    function nextSlide() {
-        if (isTransitioning) return;
+    function typeText(text: string) {
+        isTyping = true;
+        displayedText = "";
+        let i = 0;
         
-        if (currentSlide >= slides.length - 1) {
+        function typeNextChar() {
+            if (i < text.length) {
+                displayedText += text[i];
+                i++;
+                typewriterTimeout = setTimeout(typeNextChar, 30);
+            } else {
+                isTyping = false;
+            }
+        }
+        
+        typeNextChar();
+    }
+
+    function nextStep() {
+        if (isTyping) {
+            clearTimeout(typewriterTimeout);
+            displayedText = dialogues[step];
+            isTyping = false;
+            return;
+        }
+
+        step++;
+
+        if (step >= dialogues.length) {
             completeOnboarding();
             return;
         }
 
-        isTransitioning = true;
-        currentSlide++;
-        
-        setTimeout(() => {
-            isTransitioning = false;
-        }, 300);
-    }
-
-    function previousSlide() {
-        if (isTransitioning || currentSlide === 0) return;
-        
-        isTransitioning = true;
-        currentSlide--;
-        
-        setTimeout(() => {
-            isTransitioning = false;
-        }, 300);
+        typeText(dialogues[step]);
     }
 
     function completeOnboarding() {
@@ -72,12 +67,9 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "ArrowRight" || event.key === " " || event.key === "Enter") {
+        if (event.key === " " || event.key === "Enter") {
             event.preventDefault();
-            nextSlide();
-        } else if (event.key === "ArrowLeft") {
-            event.preventDefault();
-            previousSlide();
+            nextStep();
         } else if (event.key === "Escape") {
             skipOnboarding();
         }
@@ -88,7 +80,9 @@
             const user = await updateUser();
             if (!user) {
                 goto("/");
+                return;
             }
+            typeText(dialogues[0]);
         }
     });
 </script>
@@ -96,52 +90,26 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="onboarding" onclick={nextSlide} role="button" tabindex="0">
-    {#each slides as slide, index}
-        <div 
-            class="slide"
-            class:active={index === currentSlide}
-            class:prev={index < currentSlide}
-            class:next={index > currentSlide}
-        >
-            <img src={slide.image} alt="" class="slide-image" />
-            <div class="slide-overlay"></div>
-            <div class="slide-content">
-                {#if slide.title}
-                    <h1 class="slide-title">{slide.title}</h1>
-                {/if}
-                {#if slide.subtitle}
-                    <p class="slide-subtitle">{slide.subtitle}</p>
-                {/if}
-            </div>
-        </div>
-    {/each}
+<div class="onboarding" onclick={nextStep} role="button" tabindex="0">
+    <!-- Background -->
+    <img src="/IMG_3373.png" alt="" class="background-image" />
+    <div class="background-overlay"></div>
 
-    <!-- Progress indicators -->
-    <div class="progress-bar">
-        {#each slides as _, index}
-            <button
-                class="progress-dot"
-                class:active={index === currentSlide}
-                class:completed={index < currentSlide}
-                onclick={(e) => {
-                    e.stopPropagation();
-                    currentSlide = index;
-                }}
-                aria-label={`Go to slide ${index + 1}`}
-            ></button>
-        {/each}
+    <!-- Dialogue box at bottom like Midnight -->
+    <div class="dialogue-box">
+        <div class="dialogue-label">
+            <span class="dialogue-speaker">BUILDBOARD</span>
+        </div>
+        <div class="dialogue-content">
+            <p class="dialogue-text">{displayedText}<span class="cursor" class:typing={isTyping}>|</span></p>
+            <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
+        </div>
     </div>
 
     <!-- Skip button -->
     <button class="skip-button" onclick={(e) => { e.stopPropagation(); skipOnboarding(); }}>
-        Skip &rarr;
+        Skip →
     </button>
-
-    <!-- Navigation hint -->
-    <div class="nav-hint">
-        <span>Click or press Space to continue</span>
-    </div>
 </div>
 
 <style>
@@ -155,34 +123,7 @@
         overflow: hidden;
     }
 
-    .slide {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: opacity 0.4s ease, transform 0.4s ease;
-        pointer-events: none;
-    }
-
-    .slide.active {
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-    }
-
-    .slide.prev {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-
-    .slide.next {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-
-    .slide-image {
+    .background-image {
         position: absolute;
         inset: 0;
         width: 100%;
@@ -190,81 +131,83 @@
         object-fit: cover;
     }
 
-    .slide-overlay {
+    .background-overlay {
         position: absolute;
         inset: 0;
         background: linear-gradient(
             to bottom,
-            rgba(0, 0, 0, 0.2) 0%,
-            rgba(0, 0, 0, 0.1) 40%,
-            rgba(0, 0, 0, 0.4) 80%,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.2) 60%,
             rgba(0, 0, 0, 0.7) 100%
         );
     }
 
-    .slide-content {
-        position: absolute;
-        top: 15%;
-        left: 40%;
-        right: 25%;
-        text-align: left;
-        z-index: 10;
+    /* Dialogue box - Midnight style at bottom */
+    .dialogue-box {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #1c1c1c;
+        padding: 32px 50px;
+        min-height: 160px;
+        z-index: 100;
     }
 
-    .slide-title {
-        font-size: clamp(1.5rem, 4vw, 2.5rem);
-        font-weight: bold;
+    .dialogue-label {
+        position: absolute;
+        top: -24px;
+        left: 50px;
+        background: #e94560;
+        padding: 8px 20px;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .dialogue-speaker {
+        font-size: 0.875rem;
+        font-weight: 700;
         color: white;
-        margin: 0 0 4px 0;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }
 
-    .slide-subtitle {
-        font-size: clamp(0.875rem, 2vw, 1rem);
-        color: rgba(255, 255, 255, 0.8);
+    .dialogue-content {
+        max-width: 900px;
+    }
+
+    .dialogue-text {
+        font-size: 1.75rem;
+        color: white;
         margin: 0;
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        line-height: 1.5;
+        font-family: inherit;
     }
 
-    .progress-bar {
-        position: absolute;
-        bottom: 60px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 12px;
-        z-index: 20;
+    .cursor {
+        opacity: 1;
+        animation: blink 0.7s infinite;
     }
 
-    .progress-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        border: 2px solid rgba(255, 255, 255, 0.6);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        padding: 0;
+    .cursor.typing {
+        animation: none;
+        opacity: 1;
     }
 
-    .progress-dot:hover {
-        background: rgba(255, 255, 255, 0.6);
-        transform: scale(1.2);
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
     }
 
-    .progress-dot.active {
-        background: white;
-        border-color: white;
-        transform: scale(1.2);
+    .dialogue-hint {
+        font-size: 0.875rem;
+        color: #666;
+        margin: 16px 0 0 0;
+        text-align: right;
     }
 
-    .progress-dot.completed {
-        background: rgba(255, 255, 255, 0.8);
-        border-color: white;
-    }
-
+    /* Skip button */
     .skip-button {
-        position: absolute;
+        position: fixed;
         top: 24px;
         right: 24px;
         background: rgba(0, 0, 0, 0.3);
@@ -276,7 +219,7 @@
         font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
-        z-index: 20;
+        z-index: 200;
     }
 
     .skip-button:hover {
@@ -284,25 +227,24 @@
         border-color: rgba(255, 255, 255, 0.4);
     }
 
-    .nav-hint {
-        position: absolute;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.875rem;
-        z-index: 20;
-    }
-
     @media (max-width: 640px) {
-        .slide-content {
-            top: 20%;
-            left: 10%;
-            right: 10%;
+        .dialogue-box {
+            padding: 24px 24px;
+            min-height: 140px;
         }
 
-        .progress-bar {
-            bottom: 80px;
+        .dialogue-label {
+            left: 24px;
+            top: -20px;
+            padding: 6px 14px;
+        }
+
+        .dialogue-speaker {
+            font-size: 0.75rem;
+        }
+
+        .dialogue-text {
+            font-size: 1.25rem;
         }
 
         .skip-button {
