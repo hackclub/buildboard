@@ -4,10 +4,27 @@
     import { onMount } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
 
-    const characters = {
-        male: { name: "ALEX", image: "/slides/male_char.png" },
-        female: { name: "MAYA", image: "/slides/female_char.png" }
+    interface Author {
+        user_id: string;
+        first_name: string;
+        last_name: string;
+        slack_id: string | null;
+        email: string | null;
+        avatar_url: string | null;
+        bio: string | null;
+        role: string;
+        displayName?: string;
+    }
+
+    // Hardcoded display names for authors
+    const AUTHOR_DISPLAY_NAMES: Record<string, string> = {
+        'dhamari@hackclub.com': 'Dhamari',
+        'alexvd@hackclub.com': 'Alex'
     };
+
+    function getDisplayName(author: Author): string {
+        return AUTHOR_DISPLAY_NAMES[author.email || ''] || author.first_name;
+    }
 
     const slides = [
         {
@@ -37,7 +54,22 @@
     let isTyping = $state(false);
     let showCharacterOptions = $state(false);
     let typewriterTimeout: ReturnType<typeof setTimeout>;
-    let selectedCharacter = $state<'male' | 'female' | null>(null);
+    let selectedAuthor = $state<Author | null>(null);
+    let authors = $state<Author[]>([]);
+    let loadingAuthors = $state(true);
+
+    async function fetchAuthors() {
+        try {
+            const res = await fetch('/api/guides');
+            if (res.ok) {
+                authors = await res.json();
+            }
+        } catch (e) {
+            console.error('Failed to fetch authors:', e);
+        } finally {
+            loadingAuthors = false;
+        }
+    }
 
     function typeText(text: string) {
         isTyping = true;
@@ -49,24 +81,19 @@
             if (i < text.length) {
                 const char = text[i];
                 
-                // Check if we hit "." after "Welcome" - handle the ellipsis naturally
                 if (displayedText === "Welcome" && text[i] === ".") {
-                    // Count how many dots follow
                     let dotCount = 0;
                     while (text[i + dotCount] === ".") dotCount++;
                     
-                    // Type dots slowly with slight pauses between each
                     let dotIndex = 0;
                     function typeDot() {
                         if (dotIndex < dotCount) {
                             displayedText += ".";
                             dotIndex++;
                             i++;
-                            // Slower between dots, with increasing delay for dramatic effect
                             const delay = 200 + (dotIndex * 80);
                             typewriterTimeout = setTimeout(typeDot, delay);
                         } else {
-                            // Brief pause after all dots, then continue
                             typewriterTimeout = setTimeout(() => {
                                 displayedText += " ";
                                 typeNextChar();
@@ -82,7 +109,6 @@
                 typewriterTimeout = setTimeout(typeNextChar, 30);
             } else {
                 isTyping = false;
-                // Show character options after typing finishes on character select slide
                 if (slides[step].showCharacterSelect) {
                     setTimeout(() => {
                         showCharacterOptions = true;
@@ -94,8 +120,23 @@
         typeNextChar();
     }
 
-    function selectCharacter(character: 'male' | 'female') {
-        selectedCharacter = character;
+    async function selectAuthor(author: Author) {
+        selectedAuthor = author;
+        
+        // Save to backend
+        try {
+            const res = await fetch('/api/guides/select', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author_id: author.user_id })
+            });
+            if (!res.ok) {
+                console.error('Failed to save author selection');
+            }
+        } catch (e) {
+            console.error('Error saving author:', e);
+        }
+        
         nextStep();
     }
 
@@ -107,8 +148,7 @@
             return;
         }
 
-        // Don't advance if on character select and no character chosen
-        if (slides[step].showCharacterSelect && !selectedCharacter) {
+        if (slides[step].showCharacterSelect && !selectedAuthor) {
             return;
         }
 
@@ -125,9 +165,6 @@
     function completeOnboarding() {
         const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
         document.cookie = `onboardingComplete=true; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
-        if (selectedCharacter) {
-            document.cookie = `buildboard_character=${selectedCharacter}; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
-        }
         goto("/app/projects");
     }
 
@@ -140,7 +177,7 @@
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === " " || event.key === "Enter") {
             event.preventDefault();
-            if (!slides[step].showCharacterSelect || selectedCharacter) {
+            if (!slides[step].showCharacterSelect || selectedAuthor) {
                 nextStep();
             }
         } else if (event.key === "Escape") {
@@ -149,7 +186,7 @@
     }
 
     function handleMainClick() {
-        if (!slides[step].showCharacterSelect || selectedCharacter) {
+        if (!slides[step].showCharacterSelect || selectedAuthor) {
             nextStep();
         }
     }
@@ -161,11 +198,12 @@
                 goto("/");
                 return;
             }
+            await fetchAuthors();
             typeText(slides[0].text);
         }
     });
 
-    let speakerName = $derived(selectedCharacter ? characters[selectedCharacter].name : "BUILDBOARD");
+    let speakerName = $derived(selectedAuthor ? getDisplayName(selectedAuthor).toUpperCase() : "BUILDBOARD");
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -184,26 +222,24 @@
     <div class="background-overlay"></div>
 
     <!-- Character Selection - shows after typing finishes -->
-    {#if showCharacterOptions && !selectedCharacter}
+    {#if showCharacterOptions && !selectedAuthor && !loadingAuthors}
         <div class="character-select">
             <p class="select-prompt">Choose your guide</p>
             <div class="characters">
-                <button class="character-option" onclick={(e) => { e.stopPropagation(); selectCharacter('male'); }}>
-                    <img src={characters.male.image} alt="Alex" class="character-image" />
-                    <span class="character-name">{characters.male.name}</span>
-                </button>
-                <button class="character-option" onclick={(e) => { e.stopPropagation(); selectCharacter('female'); }}>
-                    <img src={characters.female.image} alt="Maya" class="character-image" />
-                    <span class="character-name">{characters.female.name}</span>
-                </button>
+                {#each authors as author}
+                    <button class="character-option" onclick={(e) => { e.stopPropagation(); selectAuthor(author); }}>
+                        <img src={author.avatar_url || '/slides/male_char.png'} alt={getDisplayName(author)} class="character-image" />
+                        <span class="character-name">{getDisplayName(author).toUpperCase()}</span>
+                    </button>
+                {/each}
             </div>
         </div>
     {/if}
 
     <!-- Selected character display - shows after selection -->
-    {#if selectedCharacter}
+    {#if selectedAuthor}
         <div class="selected-character">
-            <img src={characters[selectedCharacter].image} alt={characters[selectedCharacter].name} class="guide-image" />
+            <img src={selectedAuthor.avatar_url || '/slides/male_char.png'} alt={selectedAuthor.first_name} class="guide-image" />
         </div>
     {/if}
 
@@ -216,8 +252,8 @@
             <p class="dialogue-text">
                 {displayedText}<span class="cursor" class:typing={isTyping}>|</span>
             </p>
-            {#if showCharacterOptions && !selectedCharacter}
-                <p class="dialogue-hint">Choose a character above</p>
+            {#if showCharacterOptions && !selectedAuthor}
+                <p class="dialogue-hint">Choose a guide above</p>
             {:else}
                 <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
             {/if}
