@@ -4,9 +4,9 @@ import { PUBLIC_UNLEASH_URL, PUBLIC_UNLEASH_CLIENT_KEY } from '$env/static/publi
 let unleash: Unleash | null = null;
 let isReady = false;
 
-// Mock Unleash instance - enable platform by default when Unleash is unavailable
+// Mock Unleash instance - all flags disabled by default when Unleash is unavailable
 const mockUnleash = {
-    isEnabled: (name: string) => name === 'enable-platform',
+    isEnabled: () => false,
     getVariant: () => ({ name: 'disabled', enabled: false }),
 } as unknown as Unleash;
 
