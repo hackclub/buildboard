@@ -19,22 +19,32 @@
         {
             image: "/slides/slide_one.png",
             text: "Welcome..... sooo you wanna be known for building cool shit?",
-            showCharacterSelect: false
+            showCharacterSelect: false,
+            showTerms: false
         },
         {
             image: "/slides/slide_one.png",
             text: "Good for you, your guide is here to help you.",
-            showCharacterSelect: true
+            showCharacterSelect: true,
+            showTerms: false
         },
         {
             image: "/slides/slide_two.jpg",
             text: "BuildBoard is your chance. Commit to one project and watch it go through a series of milestones.",
-            showCharacterSelect: false
+            showCharacterSelect: false,
+            showTerms: false
         },
         {
             image: "/slides/slide_two.jpg",
             text: "See your project on Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
-            showCharacterSelect: false
+            showCharacterSelect: false,
+            showTerms: false
+        },
+        {
+            image: "/slides/slide_two.jpg",
+            text: "Before we begin, please read and agree to our terms.",
+            showCharacterSelect: false,
+            showTerms: true
         }
     ];
 
@@ -44,6 +54,9 @@
     let showCharacterOptions = $state(false);
     let typewriterTimeout: ReturnType<typeof setTimeout>;
     let selectedAuthor = $state<Author | null>(null);
+    let hasScrolledToBottom = $state(false);
+    let showTermsBox = $state(false);
+    let hasAgreedToTerms = $state(false);
 
     function typeText(text: string) {
         isTyping = true;
@@ -88,10 +101,29 @@
                         showCharacterOptions = true;
                     }, 600);
                 }
+                if (slides[step].showTerms) {
+                    setTimeout(() => {
+                        showTermsBox = true;
+                    }, 600);
+                }
             }
         }
         
         typeNextChar();
+    }
+
+    function handleTermsScroll(e: Event) {
+        const target = e.target as HTMLElement;
+        const { scrollTop, scrollHeight, clientHeight } = target;
+        if (scrollTop + clientHeight >= scrollHeight - 5) {
+            hasScrolledToBottom = true;
+        }
+    }
+
+    function agreeToTerms() {
+        if (hasAgreedToTerms) {
+            completeOnboarding();
+        }
     }
 
     function selectAuthor(author: Author) {
@@ -104,10 +136,20 @@
             clearTimeout(typewriterTimeout);
             displayedText = slides[step].text;
             isTyping = false;
+            if (slides[step].showCharacterSelect) {
+                showCharacterOptions = true;
+            }
+            if (slides[step].showTerms) {
+                showTermsBox = true;
+            }
             return;
         }
 
         if (slides[step].showCharacterSelect && !selectedAuthor) {
+            return;
+        }
+
+        if (slides[step].showTerms) {
             return;
         }
 
@@ -118,6 +160,8 @@
             return;
         }
 
+        showTermsBox = false;
+        hasScrolledToBottom = false;
         typeText(slides[step].text);
     }
 
@@ -127,10 +171,13 @@
         goto("/app/projects");
     }
 
-    function skipOnboarding() {
-        const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
-        document.cookie = `onboardingSkipped=true; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
-        goto("/app/projects");
+    function skipToTerms() {
+        clearTimeout(typewriterTimeout);
+        const termsSlideIndex = slides.findIndex(s => s.showTerms);
+        if (termsSlideIndex !== -1) {
+            step = termsSlideIndex;
+            typeText(slides[termsSlideIndex].text);
+        }
     }
 
     function handleKeydown(event: KeyboardEvent) {
@@ -140,7 +187,7 @@
                 nextStep();
             }
         } else if (event.key === "Escape") {
-            skipOnboarding();
+            skipToTerms();
         }
     }
 
@@ -195,9 +242,65 @@
     {/if}
 
     <!-- Selected character display - shows after selection -->
-    {#if selectedAuthor}
+    {#if selectedAuthor && !slides[step].showTerms}
         <div class="selected-character">
             <img src={selectedAuthor.avatar} alt={selectedAuthor.name} class="guide-image" />
+        </div>
+    {/if}
+
+    <!-- Terms and Conditions - shows on terms slide -->
+    {#if showTermsBox}
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="terms-container" onclick={(e) => e.stopPropagation()}>
+            <h3 class="terms-title">Terms & Conditions</h3>
+            <div class="terms-box" onscroll={handleTermsScroll}>
+                <p><strong>BuildBoard Participation Agreement</strong></p>
+                
+                <p>By participating in BuildBoard, you acknowledge and agree to the following terms:</p>
+                
+                <p><strong>1. Eligibility</strong><br/>
+                BuildBoard is open to teenagers 18 years old and under. By continuing, you confirm you meet this age requirement.</p>
+                
+                <p><strong>2. Project Commitment</strong><br/>
+                You agree to commit to building and completing your project through the milestone stages. While life happens, we encourage genuine effort and progress.</p>
+                
+                <p><strong>3. Content Guidelines</strong><br/>
+                All projects and content shared must be appropriate, original, and not violate any copyrights or intellectual property rights. No NSFW, hateful, or harmful content.</p>
+                
+                <p><strong>4. Community Standards</strong><br/>
+                You agree to treat other participants with respect and maintain a positive, supportive community environment.</p>
+                
+                <p><strong>5. Data & Privacy</strong><br/>
+                Your project information and progress may be displayed publicly on BuildBoard. We will not sell your personal data to third parties. By agreeing, you consent to receive updates, tips, and announcements about BuildBoard via email.</p>
+                
+                <p><strong>6. Promotion Rights</strong><br/>
+                By participating, you grant BuildBoard permission to feature your project on our platforms, including Magic Happening, social media, and promotional materials.</p>
+                
+                <p><strong>TL;DR:</strong> Be kind, build cool stuff, keep it appropriate, and let us celebrate your work!</p>
+            </div>
+            <label class="terms-read-checkbox" class:disabled={!hasScrolledToBottom}>
+                <input 
+                    type="checkbox" 
+                    bind:checked={hasAgreedToTerms}
+                    disabled={!hasScrolledToBottom}
+                    class="terms-checkbox"
+                />
+                <span class="terms-checkbox-label">
+                    {#if hasScrolledToBottom}
+                        I have read and agree to the terms and conditions
+                    {:else}
+                        Scroll to read all terms first
+                    {/if}
+                </span>
+            </label>
+            <button 
+                class="terms-agree-button" 
+                class:enabled={hasAgreedToTerms}
+                onclick={agreeToTerms}
+                disabled={!hasAgreedToTerms}
+            >
+                {hasAgreedToTerms ? "Let's Build!" : "Agree to terms above to continue"}
+            </button>
         </div>
     {/if}
 
@@ -212,16 +315,21 @@
             </p>
             {#if showCharacterOptions && !selectedAuthor}
                 <p class="dialogue-hint">Choose a guide above</p>
+            {:else if showTermsBox}
+                <p class="dialogue-hint">Read and agree to the terms above</p>
             {:else}
                 <p class="dialogue-hint">{isTyping ? "Click to skip" : "Click to continue"}</p>
             {/if}
         </div>
     </div>
 
-    <!-- Skip button -->
-    <button class="skip-button" onclick={(e) => { e.stopPropagation(); skipOnboarding(); }}>
-        Skip →
-    </button>
+    <!-- Skip button - hidden on terms slide -->
+    {#if !slides[step].showTerms}
+        <button class="skip-button" onclick={(e) => { e.stopPropagation(); skipToTerms(); }}>
+            Skip →
+        </button>
+    {/if}
+
 </div>
 
 <style>
@@ -429,6 +537,142 @@
         border-color: rgba(255, 255, 255, 0.4);
     }
 
+    /* Terms and Conditions */
+    .terms-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 150;
+        background: rgba(28, 28, 28, 0.95);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 600px;
+        width: calc(100% - 48px);
+        animation: termsEnter 0.4s ease-out;
+    }
+
+    @keyframes termsEnter {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -45%);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+    }
+
+    .terms-title {
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    .terms-box {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 20px;
+        max-height: 250px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .terms-box p {
+        margin: 0 0 12px 0;
+    }
+
+    .terms-box p:last-child {
+        margin-bottom: 0;
+    }
+
+    .terms-box strong {
+        color: white;
+    }
+
+    .terms-read-checkbox {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        padding: 14px;
+        background: rgba(233, 69, 96, 0.1);
+        border: 2px solid rgba(233, 69, 96, 0.3);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .terms-read-checkbox:not(.disabled):hover {
+        background: rgba(233, 69, 96, 0.15);
+        border-color: rgba(233, 69, 96, 0.5);
+    }
+
+    .terms-read-checkbox.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .terms-checkbox {
+        width: 20px;
+        height: 20px;
+        accent-color: #e94560;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .terms-checkbox:disabled {
+        cursor: not-allowed;
+    }
+
+    .terms-checkbox-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .terms-read-checkbox.disabled .terms-checkbox-label {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .terms-agree-button {
+        width: 100%;
+        padding: 16px 24px;
+        border: 2px solid #343a40;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: not-allowed;
+        transition: all 0.2s ease;
+        background: #555;
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .terms-agree-button.enabled {
+        background: #e94560;
+        border-color: #e94560;
+        color: white;
+        cursor: pointer;
+    }
+
+    .terms-agree-button.enabled:hover {
+        background: #d63850;
+        border-color: #d63850;
+    }
+
     @media (max-width: 640px) {
         .character-select {
             bottom: 150px;
@@ -478,6 +722,22 @@
             right: 16px;
             padding: 8px 16px;
             font-size: 0.875rem;
+        }
+
+        .terms-container {
+            padding: 16px;
+            width: calc(100% - 32px);
+        }
+
+        .terms-box {
+            max-height: 180px;
+            padding: 16px;
+            font-size: 0.85rem;
+        }
+
+        .terms-agree-button {
+            padding: 14px 20px;
+            font-size: 0.9rem;
         }
     }
 </style>
