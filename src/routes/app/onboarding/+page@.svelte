@@ -5,26 +5,15 @@
     import { getUser, updateUser } from "$lib/state/user.svelte";
 
     interface Author {
-        user_id: string;
-        first_name: string;
-        last_name: string;
-        slack_id: string | null;
-        email: string | null;
-        avatar_url: string | null;
-        bio: string | null;
-        role: string;
-        displayName?: string;
+        id: string;
+        name: string;
+        avatar: string;
     }
 
-    // Hardcoded display names for authors
-    const AUTHOR_DISPLAY_NAMES: Record<string, string> = {
-        'dhamari@hackclub.com': 'Dhamari',
-        'alexvd@hackclub.com': 'Alex'
-    };
-
-    function getDisplayName(author: Author): string {
-        return AUTHOR_DISPLAY_NAMES[author.email || ''] || author.first_name;
-    }
+    const AUTHORS: Author[] = [
+        { id: 'dhamari', name: 'Dhamari', avatar: '/slides/dhamari.png' },
+        { id: 'alex', name: 'Alex', avatar: '/slides/alex.png' }
+    ];
 
     const slides = [
         {
@@ -55,21 +44,6 @@
     let showCharacterOptions = $state(false);
     let typewriterTimeout: ReturnType<typeof setTimeout>;
     let selectedAuthor = $state<Author | null>(null);
-    let authors = $state<Author[]>([]);
-    let loadingAuthors = $state(true);
-
-    async function fetchAuthors() {
-        try {
-            const res = await fetch('/api/guides');
-            if (res.ok) {
-                authors = await res.json();
-            }
-        } catch (e) {
-            console.error('Failed to fetch authors:', e);
-        } finally {
-            loadingAuthors = false;
-        }
-    }
 
     function typeText(text: string) {
         isTyping = true;
@@ -120,23 +94,8 @@
         typeNextChar();
     }
 
-    async function selectAuthor(author: Author) {
+    function selectAuthor(author: Author) {
         selectedAuthor = author;
-        
-        // Save to backend
-        try {
-            const res = await fetch('/api/guides/select', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ author_id: author.user_id })
-            });
-            if (!res.ok) {
-                console.error('Failed to save author selection');
-            }
-        } catch (e) {
-            console.error('Error saving author:', e);
-        }
-        
         nextStep();
     }
 
@@ -198,12 +157,11 @@
                 goto("/");
                 return;
             }
-            await fetchAuthors();
             typeText(slides[0].text);
         }
     });
 
-    let speakerName = $derived(selectedAuthor ? getDisplayName(selectedAuthor).toUpperCase() : "BUILDBOARD");
+    let speakerName = $derived(selectedAuthor ? selectedAuthor.name.toUpperCase() : "BUILDBOARD");
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -222,14 +180,14 @@
     <div class="background-overlay"></div>
 
     <!-- Character Selection - shows after typing finishes -->
-    {#if showCharacterOptions && !selectedAuthor && !loadingAuthors}
+    {#if showCharacterOptions && !selectedAuthor}
         <div class="character-select">
             <p class="select-prompt">Choose your guide</p>
             <div class="characters">
-                {#each authors as author}
+                {#each AUTHORS as author}
                     <button class="character-option" onclick={(e) => { e.stopPropagation(); selectAuthor(author); }}>
-                        <img src={author.avatar_url || '/slides/male_char.png'} alt={getDisplayName(author)} class="character-image" />
-                        <span class="character-name">{getDisplayName(author).toUpperCase()}</span>
+                        <img src={author.avatar} alt={author.name} class="character-image" />
+                        <span class="character-name">{author.name.toUpperCase()}</span>
                     </button>
                 {/each}
             </div>
@@ -239,7 +197,7 @@
     <!-- Selected character display - shows after selection -->
     {#if selectedAuthor}
         <div class="selected-character">
-            <img src={selectedAuthor.avatar_url || '/slides/male_char.png'} alt={selectedAuthor.first_name} class="guide-image" />
+            <img src={selectedAuthor.avatar} alt={selectedAuthor.name} class="guide-image" />
         </div>
     {/if}
 
