@@ -102,20 +102,23 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    first_name: userIDV.identity.first_name || '',
-                    last_name: userIDV.identity.last_name || '',
-                    slack_id: slackId,
                     email: userIDV.identity.primary_email,
-                    is_admin: false,
-                    is_idv: hasAddressData,
-                    is_slack_member: !!slackId,
-                    address_line_1: userIDV.identity.addresses?.[0]?.line_1 || null,
-                    address_line_2: userIDV.identity.addresses?.[0]?.line_2 || null,
-                    city: userIDV.identity.addresses?.[0]?.city || null,
-                    state: userIDV.identity.addresses?.[0]?.state || null,
-                    country: userIDV.identity.addresses?.[0]?.country_code || null,
-                    post_code: userIDV.identity.addresses?.[0]?.postal_code || null,
-                    birthday: new Date().toISOString()
+                    slack_id: slackId,
+                    profile: {
+                        first_name: userIDV.identity.first_name || '',
+                        last_name: userIDV.identity.last_name || '',
+                        is_public: false,
+                        birthday: null
+                    },
+                    address: hasAddressData ? {
+                        address_line_1: userIDV.identity.addresses[0].line_1,
+                        address_line_2: userIDV.identity.addresses[0].line_2 || null,
+                        city: userIDV.identity.addresses[0].city || null,
+                        state: userIDV.identity.addresses[0].state || null,
+                        country: userIDV.identity.addresses[0].country_code || null,
+                        post_code: userIDV.identity.addresses[0].postal_code || null,
+                        is_primary: true
+                    } : null
                 })
             });
 
@@ -125,6 +128,20 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             }
 
             user = await createUserResponse.json();
+
+            // Add roles based on IDV data
+            if (hasAddressData) {
+                await fetch(getBackendUrl(`/users/${user.user_id}/roles/idv`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
+                });
+            }
+            if (slackId) {
+                await fetch(getBackendUrl(`/users/${user.user_id}/roles/slack_member`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
+                });
+            }
         }
 
         const hashedUserID = hashUserID(user.user_id);

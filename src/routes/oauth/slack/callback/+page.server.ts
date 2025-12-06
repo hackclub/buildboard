@@ -59,7 +59,6 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             throw redirect(302, '/');
         }
 
-        // For OpenID Connect, decode the id_token instead of calling API
         const idToken = data.id_token;
         
         if (!idToken) {
@@ -68,7 +67,6 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             throw redirect(302, '/');
         }
 
-        // Decode JWT (id_token) - split by '.' and decode the payload (middle part)
         const tokenPayload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
         console.log('OpenID token payload:', tokenPayload);
 
@@ -103,20 +101,15 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             console.log('User not found for email, creating new user');
             
             const requestBody = {
-                first_name: firstName || null,
-                last_name: ' ',
-                slack_id: slackID,
                 email: email,
-                is_admin: false,
-                is_idv: false,
-                is_slack_member: true,
-                address_line_1: null,
-                address_line_2: null,
-                city: null,
-                state: null,
-                country: null,
-                post_code: null,
-                birthday: null,
+                slack_id: slackID,
+                profile: {
+                    first_name: firstName || '',
+                    last_name: '',
+                    is_public: false,
+                    birthday: null
+                },
+                address: null
             };
 
             console.log('Creating user with request body:', requestBody);
@@ -143,9 +136,14 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
             const responseBody = await createUserResponse.text();
             console.log('Create user response body:', responseBody);
             user1 = JSON.parse(responseBody);
+
+            // Add slack_member role
+            await fetch(getBackendUrl(`/users/${user1.user_id}/roles/slack_member`), {
+                method: 'POST',
+                headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
+            });
         }
 
-        ////console.log('User logged in:', user1.user_id);
         const hashedUserID = hashUserID(user1.user_id);
         cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
         throw redirect(302, '/app/onboarding');

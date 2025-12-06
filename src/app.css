@@ -1,6 +1,35 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/typography';
 
+:root {
+  /* BuildBoard Color System - Extracted from artwork */
+  
+  /* Backgrounds */
+  --bb-bg-dark: #2E2221;           /* Deep shadow brown-red */
+  --bb-bg-mid: #9B4A3D;            /* Warm terracotta */
+  --bb-bg-light: #B4775D;          /* Lighter earthy brown */
+  
+  /* Primary Colors */
+  --bb-primary: #FFB859;           /* Sunset orange - headlines, CTAs */
+  --bb-primary-light: #FFD087;     /* Lighter orange - hover states */
+  --bb-primary-dark: #C27844;      /* Darker orange - active states */
+  
+  /* Accent Colors */
+  --bb-accent: #CE3337;            /* Hack Club red - highlights */
+  --bb-accent-dark: #6D2E2B;       /* Deep maroon - borders, silhouettes */
+  
+  /* Text Colors */
+  --bb-text-primary: #FFFEF4;      /* Cream white - main text */
+  --bb-text-secondary: rgba(255, 254, 244, 0.75);  /* Muted cream - body */
+  --bb-text-muted: rgba(255, 254, 244, 0.5);       /* Faded - captions */
+  
+  /* Semantic Colors */
+  --bb-success: #FFB859;           /* Same as primary for consistency */
+  --bb-warning: #F0A76B;           /* Mid sunset tone */
+  --bb-link: #FFB859;              /* Links */
+  --bb-link-hover: #FFFEF4;        /* Link hover */
+}
+
 @font-face {
   font-family: 'Permanent Marker';
   src: url('/fonts/PermanentMarker-Regular.ttf') format('truetype');
@@ -83,5 +112,28 @@
       /* Custom font utilities */
       .font-pangolin {
         font-family: 'Pangolin', cursive, sans-serif !important;
+      }
+      .font-brisbane {
+        font-family: 'brisbane', sans-serif !important;
+      }
+      .font-monotalic {
+        font-family: 'monotalic', sans-serif !important;
+      }
+      .font-monotalic-narrow {
+        font-family: 'monotalic-narrow', sans-serif !important;
+      }
+      .font-monotalic-wide {
+        font-family: 'monotalic-wide', sans-serif !important;
+      }
+      
+      /* OpenType feature utilities for Brisbane */
+      .oldstyle-figures {
+        font-feature-settings: "onum" 1 !important;
+      }
+      .raised-colon {
+        font-feature-settings: "ss03" 1 !important;
+      }
+      .fractions {
+        font-feature-settings: "frac" 1 !important;
       }
     }

@@ -9,8 +9,8 @@
     let mediumSize = $derived(innerWidth < 1850 || innerHeight < 1100);
 
     let hackatimeAcknowledged = $state(data.hackatimeAcknowledged);
-    let isIDV = $state(data.isIDV);
-    let showNotice = $derived(!hackatimeAcknowledged || !isIDV);
+    let hasAddress = $state(data.hasAddress);
+    let showNotice = $derived(!hackatimeAcknowledged || !hasAddress);
 
     onMount(() => {
         const updateSize = () => {
@@ -45,8 +45,8 @@
                             {#if !hackatimeAcknowledged}
                                 <li>Hackatime Installation & Acknowledgment</li>
                             {/if}
-                            {#if !isIDV}
-                                <li>Identity Verification</li>
+                            {#if !hasAddress}
+                                <li>Address Verification</li>
                             {/if}
                         </ul>
                     </div>

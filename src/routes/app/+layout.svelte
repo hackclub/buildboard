@@ -2,7 +2,7 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
-    import { getUser, updateUser, isLoading } from "$lib/state/user.svelte";
+    import { getUser, updateUser, isLoading, isAdmin } from "$lib/state/user.svelte";
     import { onMount } from "svelte";
 
     let { children } = $props();
@@ -41,19 +41,19 @@
                     class:active={$page.url.pathname.includes("/@")}
                 >
                     <img
-                        src={user.avatar ||
-                            `https://ui-avatars.com/api/?name=${user.email}`}
+                        src={user.profile?.avatar_url ||
+                            `https://ui-avatars.com/api/?name=${user.handle || 'U'}`}
                         alt="Avatar"
                         class="avatar"
                     />
-                    <span class="email">{user.email}</span>
+                    <span class="email">@{user.handle || 'user'}</span>
                 </a>
                 <a
                     href="/app/projects"
                     class:active={$page.url.pathname.includes("/projects")}
                     >Projects</a
                 >
-                {#if user.is_admin}
+                {#if isAdmin(user)}
                     <a
                         href="/app/admin"
                         class:active={$page.url.pathname.includes("/admin")}

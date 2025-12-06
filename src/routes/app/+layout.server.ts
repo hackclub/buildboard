@@ -3,6 +3,11 @@ import { BEARER_TOKEN_BACKEND } from '$env/static/private';
 import { unhashUserID, getBackendUrl } from '$lib/server/auth';
 import { redirect } from '@sveltejs/kit';
 
+function hasRole(user: any, roleId: string): boolean {
+    if (!user?.roles) return false;
+    return user.roles.some((r: any) => r.role_id === roleId);
+}
+
 export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
     if (!locals.flags.isEnabled('enable-platform')) {
         throw redirect(303, '/');
@@ -11,8 +16,6 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
     const hashedUserID = cookies.get('userID');
 
     if (!hashedUserID) {
-        // Let the client-side handle redirect if needed, 
-        // or you can throw redirect(303, '/') here if you want strict server-side protection
         return { user: null };
     }
 
@@ -29,7 +32,6 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         return { user: null };
     }
 
-    // Make request to API to verify user access
     const response = await fetch(getBackendUrl(`/users/${userID}/exists`), {
         headers: {
             'Authorization': `${BEARER_TOKEN_BACKEND}`
@@ -42,20 +44,18 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         return { user: null };
     }
 
-    // Send logged in notification
-    // Note: We can fire and forget this without awaiting if performance is key,
-    // but awaiting ensures it happens.
     await fetch(getBackendUrl(`/users/${userID}/loggedin`), {
         method: 'POST',
         headers: {
-            'Authorization': `${BEARER_TOKEN_BACKEND}`
+            'Authorization': `${BEARER_TOKEN_BACKEND}`,
+            'X-User-ID': userID
         }
     });
 
-    // Fetch user data
     const userDataResponse = await fetch(getBackendUrl(`/users/${userID}`), {
         headers: {
-            'Authorization': `${BEARER_TOKEN_BACKEND}`
+            'Authorization': `${BEARER_TOKEN_BACKEND}`,
+            'X-User-ID': userID
         }
     });
 
@@ -65,23 +65,21 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
     }
 
     let hasAcknowledged = false;
-    let isIDV = false;
+    let hasAddress = false;
     let onboardingSkipped = false;
 
     if (user) {
         hasAcknowledged = cookies.get('hackatimeAcknowledged') === 'true';
         onboardingSkipped = cookies.get('onboardingSkipped') === 'true';
-        isIDV = !!user.is_idv;
+        hasAddress = !!user.has_address;
 
         const isOnboarding = url.pathname === '/app/onboarding';
-        const isComplete = hasAcknowledged && isIDV;
+        const isComplete = hasAcknowledged && hasAddress;
 
-        // If not complete and NOT skipped, force onboarding
         if (!isComplete && !onboardingSkipped && !isOnboarding) {
             throw redirect(303, '/app/onboarding');
         }
 
-        // If complete and ON onboarding, send to projects
         if (isComplete && isOnboarding) {
             throw redirect(303, '/app/projects');
         }
@@ -90,8 +88,9 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
     return {
         user,
         hackatimeAcknowledged: hasAcknowledged,
-        isIDV,
-        isReviewer: !!user?.is_reviewer,
+        hasAddress,
+        isReviewer: hasRole(user, 'reviewer') || hasRole(user, 'admin'),
+        isAdmin: hasRole(user, 'admin'),
         onboardingSkipped
     };
 };

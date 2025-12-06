@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 257.21 52.97">
+  <defs>
+    <style>
+      .cls-2 {
+        fill: url(#linear-gradient-7);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-5);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-6);
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-6 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-7 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-8 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="3.56" y1="26.48" x2="-.08" y2="26.48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#414e52"/>
+      <stop offset=".18" stop-color="#87a3ab"/>
+      <stop offset="1" stop-color="#2e383b"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="88.06" x2="84.42" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="172.56" x2="168.93" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="257.07" x2="253.43" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-5" x1="43.99" y1="0" x2="43.99" y2="35.48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#d8e1eb"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-6" x1="128.53" x2="128.53" xlink:href="#linear-gradient-5"/>
+    <linearGradient id="linear-gradient-7" x1="213.07" x2="213.07" xlink:href="#linear-gradient-5"/>
+  </defs>
+  <g id="_ÎÓÈ_1" data-name="—ÎÓÈ_1">
+    <g>
+      <rect class="cls-8" width="3.7" height="52.97"/>
+      <rect class="cls-7" x="84.5" width="3.7" height="52.97"/>
+      <rect class="cls-6" x="169.01" width="3.7" height="52.97"/>
+      <rect class="cls-5" x="253.51" width="3.7" height="52.97"/>
+      <rect class="cls-3" x="5.33" y="6.45" width="77.32" height="40"/>
+      <rect class="cls-4" x="89.87" y="6.45" width="77.32" height="40"/>
+      <rect class="cls-2" x="174.41" y="6.45" width="77.32" height="40"/>
+    </g>
+  </g>
+</svg>

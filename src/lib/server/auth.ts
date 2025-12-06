@@ -1,5 +1,13 @@
 import { ENCRYPTION_KEY, BACKEND_DOMAIN_NAME } from '$env/static/private';
-import { createDecipheriv } from 'crypto';
+import { createDecipheriv, createCipheriv, randomBytes } from 'crypto';
+
+export function hashUserID(userID: string): string {
+    const iv = randomBytes(16);
+    const cipher = createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+    let encrypted = cipher.update(userID, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
+}
 
 export function unhashUserID(hashedUserID: string): string {
     const parts = hashedUserID.split(':');

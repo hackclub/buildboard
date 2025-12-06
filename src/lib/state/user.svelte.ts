@@ -1,25 +1,44 @@
 import { browser } from '$app/environment';
 
+export interface UserProfile {
+    avatar_url?: string | null;
+    bio?: string | null;
+    is_public: boolean;
+}
+
+export interface UserRole {
+    role_id: string;
+}
+
 export interface User {
     user_id: string;
-    email: string;
-    slack_id?: string;
-    username?: string;
-    handle?: string;
-    avatar?: string;
-    first_name?: string;
-    last_name?: string;
-    is_admin?: boolean;
-    is_reviewer?: boolean;
-    is_idv?: boolean;
-    is_slack_member?: boolean;
-    address_line_1?: string | null;
-    address_line_2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    country?: string | null;
-    post_code?: string | null;
-    birthday?: string | null;
+    handle?: string | null;
+    referral_code?: string;
+    profile?: UserProfile | null;
+    roles?: UserRole[];
+    has_address?: boolean;
+    created_at: string;
+}
+
+export function hasRole(user: User | null, roleId: string): boolean {
+    if (!user?.roles) return false;
+    return user.roles.some(r => r.role_id === roleId);
+}
+
+export function isAdmin(user: User | null): boolean {
+    return hasRole(user, 'admin');
+}
+
+export function isReviewer(user: User | null): boolean {
+    return hasRole(user, 'reviewer') || hasRole(user, 'admin');
+}
+
+export function isIdv(user: User | null): boolean {
+    return hasRole(user, 'idv');
+}
+
+export function isSlackMember(user: User | null): boolean {
+    return hasRole(user, 'slack_member');
 }
 
 let user = $state<User | null>(null);
