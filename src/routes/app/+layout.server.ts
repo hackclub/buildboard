@@ -44,13 +44,14 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         return { user: null };
     }
 
-    await fetch(getBackendUrl(`/users/${userID}/loggedin`), {
+    // Record login (fire and forget)
+    fetch(getBackendUrl(`/users/${userID}/loggedin`), {
         method: 'POST',
         headers: {
             'Authorization': `${BEARER_TOKEN_BACKEND}`,
             'X-User-ID': userID
         }
-    });
+    }).catch(() => {});
 
     const userDataResponse = await fetch(getBackendUrl(`/users/${userID}`), {
         headers: {
@@ -64,33 +65,28 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         user = await userDataResponse.json();
     }
 
-    let hasAcknowledged = false;
-    let hasAddress = false;
-    let onboardingSkipped = false;
+    // Check if user has completed the storyline (intro story)
+    const storylineComplete = !!user?.storyline_completed_at;
+    const isOnStoryline = url.pathname === '/app/onboarding';
 
-    if (user) {
-        hasAcknowledged = cookies.get('hackatimeAcknowledged') === 'true';
-        onboardingSkipped = cookies.get('onboardingSkipped') === 'true';
-        hasAddress = !!user.has_address;
-
-        const isOnboarding = url.pathname === '/app/onboarding';
-        const isComplete = hasAcknowledged && hasAddress;
-
-        if (!isComplete && !onboardingSkipped && !isOnboarding) {
-            throw redirect(303, '/app/onboarding');
-        }
-
-        if (isComplete && isOnboarding) {
-            throw redirect(303, '/app/projects');
-        }
+    // If haven't completed storyline, send them there
+    if (!storylineComplete && !isOnStoryline) {
+        throw redirect(303, '/app/onboarding');
     }
+
+    // Setup status for task checklist (not blocking - just informational)
+    const setupStatus = {
+        hasHackatime: !!user?.hackatime_completed_at || cookies.get('hackatimeAcknowledged') === 'true',
+        isSlackMember: !!user?.slack_linked_at || hasRole(user, 'slack_member'),
+        isIdvComplete: !!user?.idv_completed_at,
+        storylineComplete,
+        onboardingComplete: !!user?.onboarding_completed_at,
+    };
 
     return {
         user,
-        hackatimeAcknowledged: hasAcknowledged,
-        hasAddress,
+        setupStatus,
         isReviewer: hasRole(user, 'reviewer') || hasRole(user, 'admin'),
         isAdmin: hasRole(user, 'admin'),
-        onboardingSkipped
     };
 };

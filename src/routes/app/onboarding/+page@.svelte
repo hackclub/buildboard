@@ -122,7 +122,7 @@
 
     function agreeToTerms() {
         if (hasAgreedToTerms) {
-            completeOnboarding();
+            completeStoryline();
         }
     }
 
@@ -156,7 +156,7 @@
         step++;
 
         if (step >= slides.length) {
-            completeOnboarding();
+            completeStoryline();
             return;
         }
 
@@ -165,9 +165,14 @@
         typeText(slides[step].text);
     }
 
-    function completeOnboarding() {
-        const THIRTY_DAYS_IN_SECONDS = 30 * 24 * 60 * 60;
-        document.cookie = `onboardingComplete=true; path=/; max-age=${THIRTY_DAYS_IN_SECONDS}`;
+    async function completeStoryline() {
+        const user = getUser();
+        if (user) {
+            await fetch(`/api/users/${user.user_id}/storyline-complete`, {
+                method: 'POST'
+            });
+            await updateUser();
+        }
         goto("/app/projects");
     }
 

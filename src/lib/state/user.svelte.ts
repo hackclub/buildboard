@@ -17,6 +17,11 @@ export interface User {
     profile?: UserProfile | null;
     roles?: UserRole[];
     has_address?: boolean;
+    storyline_completed_at?: string | null;
+    hackatime_completed_at?: string | null;
+    slack_linked_at?: string | null;
+    idv_completed_at?: string | null;
+    onboarding_completed_at?: string | null;
     created_at: string;
 }
 

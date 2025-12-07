@@ -1,16 +1,13 @@
 <script lang="ts">
     import type { PageData } from "./$types";
     import { onMount } from "svelte";
+    import TaskChecklist from "$lib/components/TaskChecklist.svelte";
 
     let { data }: { data: PageData } = $props();
 
     let innerWidth = $state(0);
     let innerHeight = $state(0);
     let mediumSize = $derived(innerWidth < 1850 || innerHeight < 1100);
-
-    let hackatimeAcknowledged = $state(data.hackatimeAcknowledged);
-    let hasAddress = $state(data.hasAddress);
-    let showNotice = $derived(!hackatimeAcknowledged || !hasAddress);
 
     onMount(() => {
         const updateSize = () => {
@@ -28,42 +25,11 @@
 </script>
 
 <div class="container mx-auto pt-10">
-    {#if showNotice}
-        <div
-            class="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-r-lg shadow-sm"
-        >
-            <div
-                class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-            >
-                <div>
-                    <h3 class="text-xl font-bold text-red-800 mb-2">
-                        Setup Incomplete
-                    </h3>
-                    <div class="text-red-700 mb-2">
-                        You have not completed the following:
-                        <ul class="list-disc list-inside ml-2 mt-1">
-                            {#if !hackatimeAcknowledged}
-                                <li>Hackatime Installation & Acknowledgment</li>
-                            {/if}
-                            {#if !hasAddress}
-                                <li>Address Verification</li>
-                            {/if}
-                        </ul>
-                    </div>
-                    <p class="text-red-700 text-sm max-w-3xl">
-                        Please complete these steps to ensure full access and
-                        compliance with platform rules.
-                    </p>
-                </div>
-                <a
-                    href="/app/onboarding"
-                    class="whitespace-nowrap bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors shadow-sm text-center"
-                >
-                    Complete Setup
-                </a>
-            </div>
-        </div>
+    <!-- Task checklist - friendly, non-blocking -->
+    {#if data.setupStatus}
+        <TaskChecklist setupStatus={data.setupStatus} />
     {/if}
+
     <div class="mt-3">
         <h2
             class="{mediumSize
