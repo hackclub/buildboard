@@ -33,6 +33,7 @@
             <p>Loading...</p>
         </div>
     {:else if user}
+        <div class="app-background"></div>
         <div class="app-layout">
             <nav>
                 <a
@@ -74,7 +75,20 @@
 {/if}
 
 <style>
+    .app-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: url('/platfromBackground.jpg');
+        background-size: cover;
+        background-position: center;
+        z-index: 0;
+    }
     .app-layout {
+        position: relative;
+        z-index: 1;
         display: flex;
         min-height: 100vh;
     }
@@ -84,12 +98,17 @@
         align-items: center;
         height: 100vh;
         width: 100vw;
+        background-image: url('/platfromBackground.jpg');
+        background-size: cover;
+        background-position: center;
     }
     nav {
         width: 250px;
-        background: #f4f4f5;
+        background-image: url('/platfromBackground.jpg');
+        background-size: cover;
+        background-position: left center;
+        border-right: 2px solid var(--bb-accent-dark);
         padding: 2rem;
-        border-right: 1px solid #e4e4e7;
         display: flex;
         flex-direction: column;
         gap: 1rem;
@@ -99,22 +118,23 @@
         align-items: center;
         gap: 0.5rem;
         margin-bottom: 1rem;
-        padding: 0.5rem; /* Match other links */
-        padding-bottom: 1rem; /* Keep original spacing */
-        border-bottom: 1px solid #e4e4e7;
+        padding: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--bb-accent-dark);
         font-size: 0.9rem;
         overflow: hidden;
-        color: #52525b; /* Match default link color */
+        color: var(--bb-text-secondary);
         text-decoration: none;
     }
     .user-profile:hover {
-        background: #e4e4e7;
-        color: #000;
+        background: var(--bb-accent-dark);
+        color: var(--bb-text-primary);
     }
     .avatar {
         width: 32px;
         height: 32px;
         border-radius: 50%;
+        border: 2px solid var(--bb-primary);
     }
     .email {
         white-space: nowrap;
@@ -124,19 +144,25 @@
     main {
         flex: 1;
         padding: 2rem;
+        color: var(--bb-text-primary);
     }
     a {
         text-decoration: none;
-        color: #52525b;
+        color: var(--bb-text-secondary);
         padding: 0.5rem;
         border-radius: 4px;
+        transition: background 0.2s, color 0.2s;
     }
     a:hover {
-        background: #e4e4e7;
+        background: var(--bb-accent-dark);
+        color: var(--bb-primary-light);
     }
     .active {
-        background: #e4e4e7;
-        color: #000;
+        background: var(--bb-accent-dark);
+        color: var(--bb-primary);
         font-weight: bold;
+    }
+    .loading-screen p {
+        color: var(--bb-text-primary);
     }
 </style>
