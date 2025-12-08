@@ -136,39 +136,13 @@ export const faqSections: FAQSection[] = [
 		]
 	},
 	{
-		title: 'Technical Issues',
-		slug: 'technical-issues',
+		title: 'Technical Issues & Other',
+		slug: 'technical-issues-and-other',
 		questions: [
 			{
-				question: "The website isn't loading properly. What should I do?",
-				slug: 'website-not-loading',
-				answer: 'Try clearing your browser cache and cookies, then refresh the page. If the issue persists, try using a different browser or device. You can also check our status page for any ongoing issues.'
-			},
-			{
-				question: "I'm having trouble uploading my project. What should I do?",
-				slug: 'trouble-uploading',
-				answer: 'Make sure your images are in a supported format (JPG, PNG, GIF) and under the file size limit. Check your internet connection and try again. If problems continue, contact our support team.'
-			},
-			{
-				question: "My submission didn't go through. What happened?",
-				slug: 'submission-didnt-go-through',
-				answer: 'Check your internet connection and try submitting again. Make sure all required fields are filled out. If you continue to have issues, contact support with details about the error you\'re seeing.'
-			},
-			{
-				question: 'Who do I contact for technical support?',
-				slug: 'who-do-i-contact-for-support',
-				answer: 'You can reach our support team by emailing support@buildboard.com or through the contact form on our website. We typically respond within 24-48 hours.'
-			}
-		]
-	},
-	{
-		title: 'Other',
-		slug: 'other',
-		questions: [
-			{
-				question: 'Who do I contact with additional questions?',
+				question: 'I have a technical issue or other question. Who do I contact?',
 				slug: 'who-do-i-contact',
-				answer: 'For general questions, you can reach us at hello@buildboard.com or join the Hack Club Slack where our team is active. We\'re always happy to help!'
+				answer: 'For any technical issues or other questions, email dhamari@hackclub.com or alexvd@hackclub.com and we will resolve the issue.'
 			},
 			{
 				question: 'Can I volunteer or help with Buildboard?',

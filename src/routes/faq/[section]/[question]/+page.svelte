@@ -20,7 +20,9 @@
 <style>
 	.faq-answer-page {
 		font-family: 'brisbane', sans-serif !important;
-		background-color: #fff;
+		background: #a63c2a url('/footer.png') no-repeat center bottom;
+		background-size: cover;
+		background-attachment: fixed;
 		color: #1e1e1e;
 		min-height: 100vh;
 	}

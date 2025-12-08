@@ -40,7 +40,7 @@
             id: 'idv',
             label: 'Verify your identity',
             complete: setupStatus.isIdvComplete,
-            action: '/app/settings/idv',
+            action: '/auth/idv/start?returnTo=/app',
             actionLabel: 'Verify'
         }
     ]);

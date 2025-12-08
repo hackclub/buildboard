@@ -16,7 +16,7 @@
         if (!email) return;
         
         submitting = true;
-        goto(`/auth/login?email=${encodeURIComponent(email)}`);
+        goto(`/auth/idv/start?email=${encodeURIComponent(email)}`);
     }
 </script>
 

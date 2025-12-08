@@ -1,17 +1,14 @@
 <script>
     import { page } from '$app/stores';
-    import { PUBLIC_SLACK_CLIENT_ID, PUBLIC_SLACK_OAUTH_STATE, PUBLIC_SLACK_OAUTH_NONCE, PUBLIC_SLACK_REDIRECT_URI } from '$env/static/public';
     import EmailSignup from '$lib/components/EmailSignup.svelte';
     
     let platformEnabled = $derived($page.data.flags?.enablePlatform);
-
-    let slackRedirect = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${PUBLIC_SLACK_CLIENT_ID}&state=${PUBLIC_SLACK_OAUTH_STATE}&nonce=${PUBLIC_SLACK_OAUTH_NONCE}&redirect_uri=${PUBLIC_SLACK_REDIRECT_URI}`
 </script>
 
 <div class="landing-container">
-    <!-- Fixed top-right sign up button like Blueprint -->
+    <!-- Fixed top-right sign up button -->
     <div class="fixed-signup">
-        <a href={slackRedirect} class="signup-btn">Sign up / Log in</a>
+        <a href="/auth/idv/start" class="signup-btn">Sign up / Log in</a>
     </div>
 
     <div class="hero-section">
@@ -268,7 +265,7 @@
     .middle-section {
         width: 100%;
         min-height: 100vh;
-        background: url('/middleSection.svg') no-repeat center center;
+        background: url('/sectionTwo.jpg') no-repeat center center;
         background-size: cover;
     }
 

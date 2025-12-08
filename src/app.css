@@ -47,7 +47,9 @@
 }
 
 * {
-  font-family: 'Permanent Marker', cursive, sans-serif;
+  font-family: 'gilbert', sans-serif;
+  font-weight: 700;
+  font-style: normal;
 }
 
 .paper-curl-right {
@@ -124,6 +126,16 @@
       }
       .font-monotalic-wide {
         font-family: 'monotalic-wide', sans-serif !important;
+      }
+      .font-gilbert {
+        font-family: 'gilbert', sans-serif !important;
+        font-weight: 700;
+        font-style: normal;
+      }
+      .font-gilbert-color {
+        font-family: 'gilbert-color', sans-serif !important;
+        font-weight: 700;
+        font-style: normal;
       }
       
       /* OpenType feature utilities for Brisbane */

@@ -1,17 +1,8 @@
 import { redirect, isRedirect, isHttpError } from '@sveltejs/kit';
-import { HC_OAUTH_CLIENT_SECRET, BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
-import { getBackendUrl } from '$lib/server/auth';
-import { PUBLIC_HC_OAUTH_CLIENT_ID, PUBLIC_HC_OAUTH_REDIRECT_URL } from '$env/static/public';
+import { BEARER_TOKEN_BACKEND } from '$env/static/private';
+import { getBackendUrl, hashUserID } from '$lib/server/auth';
+import { idv } from '$lib/server/idv';
 import type { PageServerLoad } from './$types';
-import { createCipheriv, randomBytes } from 'crypto';
-
-function hashUserID(userID: string): string {
-    const iv = randomBytes(16);
-    const cipher = createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-    let encrypted = cipher.update(userID, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return iv.toString('hex') + ':' + encrypted;
-}
 
 export const load: PageServerLoad = async ({ url, cookies }) => {
     const code = url.searchParams.get('code');
@@ -29,43 +20,10 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
     }
 
     try {
-        const params = new URLSearchParams({
-            client_id: PUBLIC_HC_OAUTH_CLIENT_ID,
-            client_secret: HC_OAUTH_CLIENT_SECRET,
-            redirect_uri: PUBLIC_HC_OAUTH_REDIRECT_URL,
-            code: code,
-            grant_type: 'authorization_code'
-        });
+        const tokenData = await idv.exchangeToken(code);
+        const accessToken = tokenData.access_token;
 
-        const tokenResponse = await fetch('https://hca.dinosaurbbq.org/oauth/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: params.toString()
-        });
-
-        if (!tokenResponse.ok) {
-            const errorData = await tokenResponse.text();
-            console.error('Token exchange failed:', errorData);
-            throw redirect(302, '/');
-        }
-
-    const data = await tokenResponse.json();
-    const accessToken = data.access_token;
-
-        const getCompositePrimaryKey = await fetch(`https://hca.dinosaurbbq.org/api/v1/me`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        if (!getCompositePrimaryKey.ok) {
-            console.error('Failed to fetch user from IDV');
-            throw redirect(302, '/');
-        }
-
-        const userIDV = await getCompositePrimaryKey.json();
+        const userIDV = await idv.me(accessToken);
         console.log('User fetched successfully from IDV:', userIDV);
 
         const userResponse = await fetch(getBackendUrl(`/users/by-email/${encodeURIComponent(userIDV.identity.primary_email)}`), {
@@ -92,7 +50,8 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
         if (!user || !user.user_id) {
             console.log('User not found for email, creating new user');
             
-            const hasAddressData = !!userIDV.identity.addresses?.[0]?.line_1;
+            const address = userIDV.identity.addresses?.[0];
+            const hasAddressData = !!address?.line_1;
             const slackId = userIDV.identity.slack_id || null;
             
             const createUserResponse = await fetch(getBackendUrl('/users'), {
@@ -110,13 +69,13 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                         is_public: false,
                         birthday: null
                     },
-                    address: hasAddressData ? {
-                        address_line_1: userIDV.identity.addresses[0].line_1,
-                        address_line_2: userIDV.identity.addresses[0].line_2 || null,
-                        city: userIDV.identity.addresses[0].city || null,
-                        state: userIDV.identity.addresses[0].state || null,
-                        country: userIDV.identity.addresses[0].country_code || null,
-                        post_code: userIDV.identity.addresses[0].postal_code || null,
+                    address: hasAddressData && address ? {
+                        address_line_1: address.line_1,
+                        address_line_2: address.line_2 || null,
+                        city: address.city || null,
+                        state: address.state || null,
+                        country: address.country_code || null,
+                        post_code: address.postal_code || null,
                         is_primary: true
                     } : null
                 })

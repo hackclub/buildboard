@@ -3,13 +3,8 @@
 </script>
 
 <div class="faq-page">
-	<div class="hero">
-		<div class="hero-content">
-			<h1>Frequently Asked Questions</h1>
-		</div>
-	</div>
-
 	<div class="content">
+		<h1>Frequently Asked Questions</h1>
 		<p class="intro">Find the answers to common questions about Buildboard.</p>
 
 		<div class="sections-grid">
@@ -33,38 +28,29 @@
 <style>
 	.faq-page {
 		font-family: 'brisbane', sans-serif !important;
-		background-color: #fff;
+		background: #a63c2a url('/footer.png') no-repeat center bottom;
+		background-size: cover;
+		background-attachment: fixed;
 		color: #1e1e1e;
 		min-height: 100vh;
+		position: relative;
 	}
 
 	.faq-page * {
 		font-family: 'brisbane', sans-serif !important;
 	}
 
-	.hero {
-		background-color: #866d00;
-		padding: 40px 0;
-		margin: 0;
-	}
-
-	.hero-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 60px;
-	}
-
-	.hero h1 {
-		color: #fff;
+	.faq-page h1 {
+		color: #5a3020;
 		font-size: 36px;
 		font-weight: 300;
-		margin: 0;
+		margin: 0 0 16px 0;
 		padding: 0;
 	}
 
 	.content {
 		max-width: 1200px;
-		margin: 0 auto;
+		margin: 0 auto 0 0;
 		padding: 40px 60px;
 	}
 
