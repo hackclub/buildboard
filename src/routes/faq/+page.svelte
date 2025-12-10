@@ -124,16 +124,8 @@
 			grid-template-columns: 1fr;
 		}
 
-		.hero {
-			padding: 30px 20px;
-		}
-
 		.content {
 			padding: 30px 20px;
-		}
-
-		.hero h1 {
-			font-size: 28px;
 		}
 	}
 </style>

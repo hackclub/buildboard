@@ -147,17 +147,19 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                 console.log('Create user response body:', responseBody);
                 user1 = JSON.parse(responseBody);
 
-                // Add slack_member role for new users
-                await fetch(getBackendUrl(`/users/${user1.user_id}/roles/slack_member`), {
-                    method: 'POST',
-                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
-                });
-                
-                // Sync handle from Slack username
-                await fetch(getBackendUrl(`/users/${user1.user_id}/sync-handle-from-slack`), {
-                    method: 'POST',
-                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user1.user_id }
-                });
+                if (user1) {
+                    // Add slack_member role for new users
+                    await fetch(getBackendUrl(`/users/${user1.user_id}/roles/slack_member`), {
+                        method: 'POST',
+                        headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
+                    });
+                    
+                    // Sync handle from Slack username
+                    await fetch(getBackendUrl(`/users/${user1.user_id}/sync-handle-from-slack`), {
+                        method: 'POST',
+                        headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user1.user_id }
+                    });
+                }
             }
         } else {
             // For existing users, also try to sync handle from Slack
