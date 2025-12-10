@@ -26,7 +26,7 @@
                 buttonText="Get started"
             />
             {#if platformEnabled}
-                <a href="/app" class="app-button">Enter App</a>
+                <a href="/home" class="app-button">Enter App</a>
             {/if}
         </div>
     </div>
