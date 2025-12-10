@@ -152,13 +152,27 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                     method: 'POST',
                     headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
                 });
+                
+                // Sync handle from Slack username
+                await fetch(getBackendUrl(`/users/${user1.user_id}/sync-handle-from-slack`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user1.user_id }
+                });
+            }
+        } else {
+            // For existing users, also try to sync handle from Slack
+            if (slackID) {
+                await fetch(getBackendUrl(`/users/${user1.user_id}/sync-handle-from-slack`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user1.user_id }
+                });
             }
         }
 
         const hashedUserID = hashUserID(user1!.user_id);
         cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
 
-        throw redirect(302, '/app/onboarding');
+        throw redirect(302, '/home');
 
     } catch (err) {
         if (isRedirect(err) || isHttpError(err)) {

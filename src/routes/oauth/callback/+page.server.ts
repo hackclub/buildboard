@@ -100,13 +100,28 @@ export const load: PageServerLoad = async ({ url, cookies }) => {
                     method: 'POST',
                     headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` }
                 });
+                
+                // Sync handle from Slack username
+                await fetch(getBackendUrl(`/users/${user.user_id}/sync-handle-from-slack`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user.user_id }
+                });
+            }
+        } else {
+            // For existing users, also try to sync handle from Slack
+            const slackId = userIDV.identity.slack_id || null;
+            if (slackId) {
+                await fetch(getBackendUrl(`/users/${user.user_id}/sync-handle-from-slack`), {
+                    method: 'POST',
+                    headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}`, 'X-User-Id': user.user_id }
+                });
             }
         }
 
         const hashedUserID = hashUserID(user.user_id);
         cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
         cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
-        throw redirect(302, '/app/onboarding');
+        throw redirect(302, '/home');
 
     } catch (err) {
         // If this is an intentional redirect or an HTTP error from SvelteKit, rethrow it untouched

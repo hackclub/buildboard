@@ -50,6 +50,8 @@ interface IDVIdentity {
     primary_email: string;
     first_name?: string;
     last_name?: string;
+    phone_number?: string;
+    birthday?: string;
     slack_id?: string;
     addresses?: IDVAddress[];
     verification_status?: 'needs_submission' | 'pending' | 'verified' | 'ineligible';
@@ -80,7 +82,7 @@ interface MeResponse {
 }
 
 const HOSTS: Record<IDVEnvironment, string> = {
-    staging: 'http://localhost:3000',
+    staging: 'https://hca.dinosaurbbq.org',
     prod: 'https://auth.hackclub.com'
 };
 
@@ -147,7 +149,7 @@ class IdentityVaultService {
         params.set('client_id', PUBLIC_HC_OAUTH_CLIENT_ID);
         params.set('redirect_uri', redirectUri);
         params.set('response_type', 'code');
-        params.set('scope', 'openid profile email address slack_id verification_status');
+        params.set('scope', 'openid profile email slack_id');
         
         if (state) {
             params.set('state', state);

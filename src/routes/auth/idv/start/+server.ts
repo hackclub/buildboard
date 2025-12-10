@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { idv } from '$lib/server/idv';
 import { PUBLIC_HC_OAUTH_REDIRECT_URL } from '$env/static/public';
+import { dev } from '$app/environment';
 
 export const GET: RequestHandler = async ({ cookies, url }) => {
     if (idv.isBypassed()) {
@@ -13,16 +14,16 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
     cookies.set('idv_state', state, {
         path: '/',
         httpOnly: true,
-        secure: true,
+        secure: !dev,
         sameSite: 'lax',
         maxAge: 60 * 10 // 10 minutes
     });
 
-    const returnTo = url.searchParams.get('returnTo') || '/app';
+    const returnTo = url.searchParams.get('returnTo') || '/home';
     cookies.set('idv_return_to', returnTo, {
         path: '/',
         httpOnly: true,
-        secure: true,
+        secure: !dev,
         sameSite: 'lax',
         maxAge: 60 * 10
     });

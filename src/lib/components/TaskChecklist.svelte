@@ -1,56 +1,62 @@
 <script lang="ts">
     import { getUser, updateUser, hasRole } from '$lib/state/user.svelte';
+    import type { User } from '$lib/state/user.svelte';
 
-    interface SetupStatus {
-        hasHackatime: boolean;
-        isSlackMember: boolean;
-        isIdvComplete: boolean;
-        storylineComplete: boolean;
-        onboardingComplete: boolean;
+    interface Props {
+        projects?: any[];
     }
 
-    let { setupStatus }: { setupStatus: SetupStatus } = $props();
+    let { projects = [] }: Props = $props();
 
     let user = $derived(getUser());
 
+    // UI state
+    let slackLoading = $state(false);
+
+    function isSlackMember(u: User | null): boolean {
+        if (!u) return false;
+        return !!u.slack_linked_at || hasRole(u, 'slack_member');
+    }
+
+    function hasProject(projectList: any[]): boolean {
+        return projectList && projectList.length > 0;
+    }
+
+    function isIdvComplete(u: User | null): boolean {
+        if (!u) return false;
+        return !!u.idv_completed_at || hasRole(u, 'idv');
+    }
+
+    function isOnboardingComplete(u: User | null): boolean {
+        if (!u) return false;
+        return !!u.onboarding_completed_at;
+    }
+
     let tasks = $derived([
         {
-            id: 'storyline',
-            label: 'Complete the storyline',
-            complete: setupStatus.storylineComplete,
-            action: '/app/onboarding',
-            actionLabel: 'Watch Story'
-        },
-        {
-            id: 'hackatime',
-            label: 'Set up Hackatime tracking',
-            complete: setupStatus.hasHackatime,
-            action: '/app/settings/hackatime',
-            actionLabel: 'Set Up'
-        },
-        {
             id: 'slack',
-            label: 'Join the Slack community',
-            complete: setupStatus.isSlackMember,
-            action: 'https://hackclub.com/slack',
-            actionLabel: 'Join Slack',
-            external: true
+            label: 'Join the Hack Club Slack',
+            complete: isSlackMember(user),
+        },
+        {
+            id: 'project',
+            label: 'Start your first project',
+            complete: hasProject(projects),
+            action: '/projects/select',
         },
         {
             id: 'idv',
             label: 'Verify your identity',
-            complete: setupStatus.isIdvComplete,
-            action: '/auth/idv/start?returnTo=/app',
-            actionLabel: 'Verify'
+            complete: isIdvComplete(user),
+            action: '/auth/idv/start?returnTo=/home',
         }
     ]);
 
-    let completedCount = $derived(tasks.filter(t => t.complete).length);
-    let allComplete = $derived(completedCount === tasks.length);
-    let progressPercent = $derived(Math.round((completedCount / tasks.length) * 100));
+    let allComplete = $derived(tasks.every(t => t.complete));
+    let onboardingComplete = $derived(isOnboardingComplete(user));
 
     async function markOnboardingComplete() {
-        if (user && allComplete && !setupStatus.onboardingComplete) {
+        if (user && allComplete && !onboardingComplete) {
             await fetch(`/api/users/${user.user_id}/onboarding-complete`, {
                 method: 'POST'
             });
@@ -59,177 +65,206 @@
     }
 
     $effect(() => {
-        if (allComplete && !setupStatus.onboardingComplete) {
+        if (allComplete && !onboardingComplete) {
             markOnboardingComplete();
         }
     });
+
+    async function handleSlackJoin() {
+        if (!user || slackLoading) return;
+        
+        slackLoading = true;
+        
+        // Open Slack invite in new tab
+        window.open('https://hackclub.com/slack', '_blank');
+        
+        // Mark as complete (trusting the user)
+        try {
+            const response = await fetch(`/api/users/${user.user_id}/slack-complete`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                await updateUser();
+            }
+        } catch (error) {
+            console.error('Failed to mark Slack complete:', error);
+        } finally {
+            slackLoading = false;
+        }
+    }
 </script>
 
-{#if !setupStatus.onboardingComplete}
-    <div class="task-checklist">
-        <div class="header">
-            <h3>🚀 Get Started</h3>
-            <span class="progress">{completedCount}/{tasks.length} complete</span>
+{#if !onboardingComplete}
+    <div class="task-card">
+        <div class="card-header">
+            <h2>Your tasks</h2>
+            <p class="subtext">Complete these to get started!</p>
         </div>
 
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: {progressPercent}%"></div>
-        </div>
-
-        <ul class="tasks">
-            {#each tasks as task}
-                <li class="task" class:complete={task.complete}>
-                    <span class="checkbox">
+        <div class="tasks-container">
+            <div class="tasks-list">
+                {#each tasks as task}
+                    <div class="task-item">
+                        <div class="checkbox" class:checked={task.complete}></div>
                         {#if task.complete}
-                            ✓
+                            <p class="task-label completed">{task.label}</p>
+                        {:else if task.id === 'slack'}
+                            <button
+                                type="button"
+                                class="task-label link"
+                                onclick={handleSlackJoin}
+                                disabled={slackLoading}
+                            >
+                                {slackLoading ? 'Opening Slack...' : task.label}
+                            </button>
                         {:else}
-                            ○
+                            <a
+                                href={task.action}
+                                class="task-label link"
+                            >
+                                {task.label}
+                            </a>
                         {/if}
-                    </span>
-                    <span class="label">{task.label}</span>
-                    {#if !task.complete}
-                        <a
-                            href={task.action}
-                            class="action-btn"
-                            target={task.external ? '_blank' : undefined}
-                            rel={task.external ? 'noopener noreferrer' : undefined}
-                        >
-                            {task.actionLabel}
-                        </a>
-                    {/if}
-                </li>
-            {/each}
-        </ul>
-
-        {#if allComplete}
-            <div class="complete-banner">
-                🎉 You're all set! Welcome to BuildBoard!
+                    </div>
+                {/each}
             </div>
-        {/if}
+
+            {#if allComplete}
+                <div class="cta-section">
+                    <p class="cta-text">🎉 You're all set!</p>
+                </div>
+            {/if}
+        </div>
     </div>
 {/if}
 
 <style>
-    .task-checklist {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 24px;
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-
-    h3 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #1e293b;
-    }
-
-    .progress {
-        font-size: 0.875rem;
-        color: #64748b;
-        font-weight: 500;
-    }
-
-    .progress-bar {
-        height: 6px;
-        background: #e2e8f0;
-        border-radius: 3px;
-        overflow: hidden;
-        margin-bottom: 16px;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
-        border-radius: 3px;
-        transition: width 0.3s ease;
-    }
-
-    .tasks {
-        list-style: none;
-        margin: 0;
-        padding: 0;
+    .task-card {
+        background: #a63c2a;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        position: relative;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 1rem;
+        color: white;
     }
 
-    .task {
+    .card-header h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+    }
+
+    .subtext {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0.25rem 0 0 0;
+    }
+
+    .tasks-container {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 1rem;
+    }
+
+    .tasks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        flex-grow: 1;
+    }
+
+    .task-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 12px;
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-    }
-
-    .task.complete {
-        background: #f0fdf4;
-        border-color: #bbf7d0;
+        gap: 0.75rem;
+        font-size: 1.125rem;
     }
 
     .checkbox {
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.875rem;
-        border-radius: 50%;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.8);
         flex-shrink: 0;
     }
 
-    .task.complete .checkbox {
-        background: #10b981;
+    .checkbox.checked {
+        background: white;
+        position: relative;
+    }
+
+    .checkbox.checked::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0.75rem;
+        height: 0.5rem;
+        border-left: 3px solid #a63c2a;
+        border-bottom: 3px solid #a63c2a;
+        transform: rotate(-45deg);
+        transform-origin: center;
+    }
+
+    .task-label {
         color: white;
-        font-weight: bold;
+        background: none;
+        border: none;
+        font-size: inherit;
+        font-family: inherit;
+        padding: 0;
+        margin: 0;
     }
 
-    .task:not(.complete) .checkbox {
-        color: #94a3b8;
-        border: 2px solid #cbd5e1;
+    .task-label.completed {
+        text-decoration: line-through;
+        color: rgba(255, 255, 255, 0.6);
     }
 
-    .label {
-        flex: 1;
-        font-size: 0.9rem;
-        color: #334155;
+    .task-label.link {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
+        transition: color 0.2s;
+        text-align: left;
     }
 
-    .task.complete .label {
-        color: #166534;
+    .task-label.link:hover {
+        color: rgba(255, 255, 255, 0.8);
     }
 
-    .action-btn {
-        padding: 6px 12px;
-        background: #3b82f6;
+    .cta-section {
+        margin-top: 0.5rem;
+    }
+
+    .cta-text {
+        font-size: 1rem;
         color: white;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: background 0.2s;
-    }
-
-    .action-btn:hover {
-        background: #2563eb;
-    }
-
-    .complete-banner {
-        margin-top: 16px;
-        padding: 12px;
-        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-        color: white;
-        border-radius: 8px;
-        text-align: center;
+        margin: 0;
         font-weight: 600;
+    }
+
+    .task-label.link:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    @media (min-width: 768px) {
+        .card-header h2 {
+            font-size: 1.875rem;
+        }
+
+        .subtext {
+            font-size: 1rem;
+        }
+
+        .task-item {
+            gap: 1rem;
+            font-size: 1.25rem;
+        }
     }
 </style>

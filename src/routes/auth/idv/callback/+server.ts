@@ -3,9 +3,10 @@ import type { RequestHandler } from './$types';
 import { BEARER_TOKEN_BACKEND } from '$env/static/private';
 import { getBackendUrl, hashUserID } from '$lib/server/auth';
 import { idv } from '$lib/server/idv';
+import { dev } from '$app/environment';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
-    const returnTo = cookies.get('idv_return_to') || '/app';
+    const returnTo = cookies.get('idv_return_to') || '/home';
     
     if (idv.isBypassed() || url.searchParams.get('bypassed') === 'true') {
         cookies.delete('idv_state', { path: '/' });
@@ -85,7 +86,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         }
 
         const address = userIDV.identity.addresses?.[0];
-        const hasAddressData = !!address?.line_1;
         const slackId = userIDV.identity.slack_id || null;
 
         if (!user || !user.user_id) {
@@ -100,6 +100,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                 body: JSON.stringify({
                     email: userIDV.identity.primary_email,
                     slack_id: slackId,
+                    phone_number: userIDV.identity.phone_number || null,
                     identity_vault_id: identityVaultId,
                     identity_vault_access_token: accessToken,
                     verification_status: verificationStatus,
@@ -108,10 +109,10 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                         first_name: userInfo.given_name || userIDV.identity.first_name || '',
                         last_name: userInfo.family_name || userIDV.identity.last_name || '',
                         is_public: false,
-                        birthday: null
+                        birthday: userIDV.identity.birthday || null
                     },
-                    address: hasAddressData && address ? {
-                        address_line_1: address.line_1,
+                    address: address ? {
+                        address_line_1: address.line_1 || null,
                         address_line_2: address.line_2 || null,
                         city: address.city || null,
                         state: address.state || null,
@@ -134,6 +135,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                     method: 'POST',
                     headers: { 'Authorization': BEARER_TOKEN_BACKEND }
                 });
+                
+                // Sync handle from Slack username
+                await fetch(getBackendUrl(`/users/${user.user_id}/sync-handle-from-slack`), {
+                    method: 'POST',
+                    headers: { 'Authorization': BEARER_TOKEN_BACKEND, 'X-User-Id': user.user_id }
+                });
             }
         } else {
             await fetch(getBackendUrl(`/users/${user.user_id}/link-idv`), {
@@ -152,20 +159,26 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
             });
         }
 
-        if (hasAddressData) {
-            await fetch(getBackendUrl(`/users/${user.user_id}/roles/idv`), {
-                method: 'POST',
-                headers: { 'Authorization': BEARER_TOKEN_BACKEND }
-            });
-            await fetch(getBackendUrl(`/users/${user.user_id}/idv-complete`), {
+        await fetch(getBackendUrl(`/users/${user.user_id}/roles/idv`), {
+            method: 'POST',
+            headers: { 'Authorization': BEARER_TOKEN_BACKEND }
+        });
+        await fetch(getBackendUrl(`/users/${user.user_id}/idv-complete`), {
+            method: 'POST',
+            headers: { 'Authorization': BEARER_TOKEN_BACKEND, 'X-User-Id': user.user_id }
+        });
+        
+        // Always try to sync handle from Slack (handles both new and existing users)
+        if (slackId) {
+            await fetch(getBackendUrl(`/users/${user.user_id}/sync-handle-from-slack`), {
                 method: 'POST',
                 headers: { 'Authorization': BEARER_TOKEN_BACKEND, 'X-User-Id': user.user_id }
             });
         }
 
         const hashedUserID = hashUserID(user.user_id);
-        cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
-        cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: true, sameSite: 'lax' });
+        cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
+        cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
         
         throw redirect(302, returnTo);
 

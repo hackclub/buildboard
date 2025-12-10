@@ -51,15 +51,19 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
             return json({ error: 'Unauthorized' }, { status: 401 });
         }
         const data = await request.json();
-        const { projectTitle, projectDescription, projectType } = data;
+        const { projectTitle, projectDescription, projectType, hackatimeKeys } = data;
         
-        const payload = {
+        const payload: Record<string, unknown> = {
             user_id: userID,
             project_name: projectTitle,
             project_description: projectDescription,
             project_type: projectType,
             submission_week: "1" // Default value
         };
+
+        if (hackatimeKeys && hackatimeKeys.length > 0) {
+            payload.hackatime_projects = hackatimeKeys;
+        }
 
         const response = await fetch(getBackendUrl('/projects'), {
             method: 'POST',
