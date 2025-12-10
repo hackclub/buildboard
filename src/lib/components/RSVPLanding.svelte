@@ -1,282 +1,209 @@
 <script>
-    import { onMount } from 'svelte';
     import { page } from '$app/stores';
-    import { fade } from 'svelte/transition';
-    import { PUBLIC_HC_OAUTH_CLIENT_ID, PUBLIC_HC_OAUTH_REDIRECT_URL, PUBLIC_HC_OAUTH_RESPONSE_TYPE, PUBLIC_SLACK_CLIENT_ID, PUBLIC_SLACK_OAUTH_STATE, PUBLIC_SLACK_OAUTH_NONCE, PUBLIC_SLACK_REDIRECT_URI } from '$env/static/public';
-    import RSVPForm from '$lib/components/RSVPForm.svelte';
-
-    let innerHeight = $state(0);
-    let innerWidth = $state(0);
-    
-    /** @type {{ text: string, type: 'success' | 'error' } | null} */
-    let message = $state(null);
+    import EmailSignup from '$lib/components/EmailSignup.svelte';
     
     let platformEnabled = $derived($page.data.flags?.enablePlatform);
-    
-    // Image dimensions
-    const IMG_W = 3100;
-    const IMG_H = 1754;
-    const IMG_RATIO = IMG_W / IMG_H;
-
-    // Calculate the dimensions of the background image as if it were "background-size: cover"
-    let stageWidth = $state(IMG_W);
-    let stageHeight = $state(IMG_H);
-
-    // Update stage dimensions based on window size to mimic 'cover'
-    $effect(() => {
-        const winRatio = innerWidth / innerHeight;
-        if (winRatio > IMG_RATIO) {
-            // Window is wider than image -> Fit to Width
-            stageWidth = innerWidth;
-            stageHeight = innerWidth / IMG_RATIO;
-        } else {
-            // Window is taller than image -> Fit to Height
-            stageHeight = innerHeight;
-            stageWidth = innerHeight * IMG_RATIO;
-        }
-    });
-
-    let tooSmall = $derived(innerWidth < 1610 || innerHeight < 765);
-    let smallLayout = $derived(innerWidth > 1200 && innerWidth < 1246);
-    // Mobile check removed, we use the unified stage for everyone
-    // let mobileLayout = $derived(innerWidth <= 1200); 
-    
-    let submitHovered = $state(false);
-
-    let hcaRedirect = `https://hca.dinosaurbbq.org/oauth/authorize?client_id=${PUBLIC_HC_OAUTH_CLIENT_ID}&redirect_uri=${PUBLIC_HC_OAUTH_REDIRECT_URL}&response_type=${PUBLIC_HC_OAUTH_RESPONSE_TYPE}&scope=email`;
-    let slackRedirect = `https://slack.com/openid/connect/authorize?response_type=code&scope=openid%20profile%20email&client_id=${PUBLIC_SLACK_CLIENT_ID}&state=${PUBLIC_SLACK_OAUTH_STATE}&nonce=${PUBLIC_SLACK_OAUTH_NONCE}&redirect_uri=${PUBLIC_SLACK_REDIRECT_URI}`
-    
-    onMount(() => {
-        const error = $page.url.searchParams.get('error');
-        if (error) {
-            alert(error);
-        }
-
-        const updateSize = () => {
-            innerHeight = window.innerHeight;
-            innerWidth = window.innerWidth;
-        };
-
-        updateSize();
-        window.addEventListener('resize', updateSize);
-        return () => window.removeEventListener('resize', updateSize);
-    });
 </script>
 
-<!-- Unified Viewport for all devices -->
-<div class="viewport">
-    <!-- The Stage: Scaled to mimic 'cover', centered. Content anchored here moves with the image. -->
-    <div class="stage" style="width: {stageWidth}px; height: {stageHeight}px;">
-        <!-- Background Layers -->
-        <img src="/bg.png" alt="" class="stage-bg" />
-        <img src={submitHovered ? "/rsvphover.png" : "/email.png"} alt="" class="stage-overlay" />
-
-        <!-- Anchored Content -->
-        <div class="anchored-form">
-            <RSVPForm bind:message bind:isHovered={submitHovered} />
-        </div>
-
-        {#if platformEnabled}
-        <div class="anchored-button-wrapper">
-            <div class="button-background"></div>
-            <a href={slackRedirect} class="go-button hover:cursor-pointer">lets go</a>
-        </div>
-        {/if}
-
-        {#if platformEnabled}
-            <div class="anchored-app-link">
-                <a href="/app" class="app-button">Enter App</a>
-            </div>
-        {/if}
+<div class="landing-container">
+    <!-- Fixed top-right sign up button -->
+    <div class="fixed-signup">
+        <a href="/auth/idv/start" class="signup-btn">Sign up / Log in</a>
     </div>
 
-    {#if message}
-        <div transition:fade class="message-toast {message.type}">
-            {message.text}
+    <div class="hero-section">
+        <img src="/wallpaper.png" alt="" class="hero-bg" />
+        
+        <!-- Bottom left email signup -->
+<!--        <div class="hero-text">-->
+<!--            <h1 class="hero-title"> BuildBoard</h1>-->
+<!--            <p class="hero-subtitle">This is a placeholder </p>-->
+<!--        </div>-->
+        <div class="signup-wrapper">
+            <EmailSignup 
+                headerText="Get started with BuildBoard!"
+                placeholder="your@email.com"
+                buttonText="Get started"
+            />
+            {#if platformEnabled}
+                <a href="/app" class="app-button">Enter App</a>
+            {/if}
         </div>
-    {/if}
+    </div>
+
+<!--    <section class="middle-section">-->
+<!--    </section>-->
+
+<!--    <footer class="footer-section">-->
+<!--        <img src="/footer.png" alt="" class="footer-bg" />-->
+<!--        <div class="footer-content">-->
+<!--            &lt;!&ndash; FAQ Section &ndash;&gt;-->
+<!--            <div class="faq-section">-->
+<!--                <h2 class="faq-title">FAQ</h2>-->
+<!--                <div class="faq-grid">-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">What is Buildboard?</h3>-->
+<!--                        <p class="faq-answer">Buildboard is a program that immortalizes Hack Clubbers' projects. Ship your passion project, document the journey, and get featured on a billboard.</p>-->
+<!--                    </div>-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">Who can participate?</h3>-->
+<!--                        <p class="faq-answer">Any teenager who is part of the Hack Club community can submit their projects to be featured on Buildboard.</p>-->
+<!--                    </div>-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">How do I submit my project?</h3>-->
+<!--                        <p class="faq-answer">Sign up with your Hack Club Slack account, complete your profile, and submit your project through our platform.</p>-->
+<!--                    </div>-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">Where will the billboards be?</h3>-->
+<!--                        <p class="faq-answer">We're planning billboards in NYC and other major cities. Stay tuned for announcements!</p>-->
+<!--                    </div>-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">Is there a deadline?</h3>-->
+<!--                        <p class="faq-answer">Projects are reviewed on a rolling basis. The sooner you submit, the better your chances of being featured.</p>-->
+<!--                    </div>-->
+<!--                    <div class="faq-item">-->
+<!--                        <h3 class="faq-question">What kind of projects qualify?</h3>-->
+<!--                        <p class="faq-answer">Any creative technical project — hardware, software, games, websites, apps, and more. Show us what you've built!</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Footer Bottom &ndash;&gt;-->
+<!--        <div class="footer-bottom">-->
+<!--            <div class="footer-bottom-inner">-->
+<!--                <div class="footer-left">-->
+<!--                    <p class="footer-attribution">-->
+<!--                        A project by <a href="https://hackclub.com?utm_source=buildboard" target="_blank" rel="noopener noreferrer">Hack Club</a>-->
+<!--                    </p>-->
+<!--                    <p class="footer-description">-->
+<!--                        Hack Club is a 501(c)(3) nonprofit and network of 60k+ technical high schoolers.-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--                <div class="footer-links">-->
+<!--                    <div class="footer-col">-->
+<!--                        <p class="footer-col-title">Hack Club</p>-->
+<!--                        <a href="https://hackclub.com/philosophy/" target="_blank">Philosophy</a>-->
+<!--                        <a href="https://hackclub.com/team/" target="_blank">Our Team & Board</a>-->
+<!--                        <a href="https://hackclub.com/brand/" target="_blank">Branding</a>-->
+<!--                        <a href="https://hackclub.com/philanthropy/" target="_blank">Donate</a>-->
+<!--                    </div>-->
+<!--                    <div class="footer-col">-->
+<!--                        <p class="footer-col-title">Resources</p>-->
+<!--                        <a href="https://events.hackclub.com/" target="_blank">Community Events</a>-->
+<!--                        <a href="https://jams.hackclub.com/" target="_blank">Jams</a>-->
+<!--                        <a href="https://workshops.hackclub.com/" target="_blank">Workshops</a>-->
+<!--                        <a href="https://hackclub.com/conduct/" target="_blank">Code of Conduct</a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </footer>-->
 </div>
 
 <style>
-    /* VIEWPORT STYLES (Unified) */
-    .viewport {
+    .landing-container {
         width: 100vw;
-        height: 100vh;
-        overflow: hidden;
+        min-height: 100vh;
         position: relative;
-        background: #000; /* Fill gaps if any */
-        display: flex;
-        align-items: flex-start; /* Align top so top is never cut off */
-        justify-content: center;
-    }
-    
-    /* ... rest of desktop styles ... */
-    
-    /* Remove old mobile styles or just leave them unused for now */
-
-
-    .stage {
-        position: relative;
-        flex-shrink: 0; /* Prevent flex from squishing the stage */
+        background: var(--bb-bg-dark);
     }
 
-    .stage-bg, .stage-overlay {
+    .fixed-signup {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 100;
+    }
+
+    @media (min-width: 768px) {
+        .fixed-signup {
+            top: 2rem;
+            right: 2rem;
+        }
+    }
+
+    .signup-btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--bb-text-primary);
+        background-color: var(--bb-accent);
+        border: 2px solid var(--bb-text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    @media (min-width: 768px) {
+        .signup-btn {
+            padding: 0.5rem 1.5rem;
+            font-size: 1.25rem;
+        }
+    }
+
+    .signup-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .hero-section {
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .hero-bg {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        object-fit: fill; /* We forced the ratio on the container, so fill is safe/correct */
+        object-fit: cover;
         pointer-events: none;
     }
-    
-    .stage-overlay {
-        z-index: 1;
-    }
 
-    /* Anchoring relative to the IMAGE coordinate system */
-    .anchored-form {
+    .signup-wrapper {
         position: absolute;
-        top: 48%; /* Adjusted for the new coordinate system - tweak as needed */
-        left: 52%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
-
-    .anchored-button-wrapper {
-        position: absolute;
-        top: 72%; /* Adjusted for image coordinates */
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 3;
-    }
-
-    .anchored-app-link {
-        position: absolute;
-        top: 10px;
-        right: 10px;
+        bottom: 10rem;
+        left: 7rem;
         z-index: 10;
+        width: 100%;
+        max-width: 28rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+        .signup-wrapper {
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            max-width: none;
+        }
     }
 
     .app-button {
-        padding: 0.5rem 1rem;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        text-decoration: none;
-        border-radius: 4px;
-        font-weight: bold;
-    }
-
-    /* Reuse existing button styles */
-    .button-background {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: transparent; /* Transparent background */
-        padding: 10rem;
-        border-radius: 8px;
-        z-index: -1;
-        display: none; /* Hide it completely as requested */
-    }
-
-    .go-button {
-        white-space: nowrap;
-        padding: 1rem 2rem;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #000; /* Black text to be visible on paper */
-        text-decoration: none;
-        display: inline-block;
-
-        /* Matching the frown aesthetic - slightly tilted */
-        transform: rotate(-1deg) translateY(2px);
-        transition: transform 0.2s ease;
-    }
-
-    .go-button:hover {
-        transform: rotate(-1deg) translateY(0px) scale(1.05);
-    }
-
-
-    /* MOBILE STYLES (Unchanged mostly) */
-    .mobile-image {
-        position: relative;
-        background-image: url('/bg.png');
-        background-size: cover;
-        background-position: top center;
-        width: 100%;
-        min-height: 50vh;
-    }
-
-    .mobile-image::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url('/email.png');
-        background-size: cover;
-        background-position: top center;
-        pointer-events: none;
-    }
-
-    .mobile-section {
-        background-color: lightblue;
-        width: 100%;
-        min-height: 50vh;
-    }
-
-    /* Mobile overrides for button wrapper which is not inside .stage */
-    /*
-    .mobile-image .button-background {
-        position: absolute;
-        top: 70%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        padding: 0.75rem 2rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--bb-text-primary);
         background-color: transparent;
-        padding: 10rem;
-        border-radius: 8px;
-        z-index: 0;
-        display: none; 
-    }
-    
-    .mobile-image .go-button {
-        font-size: 1rem;
-        position: absolute;
-        top: 70%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-    }
-    */
-
-    .message-toast {
-        position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        font-weight: bold;
-        white-space: nowrap;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 2px solid var(--bb-text-primary);
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
 
-    .message-toast.success {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
+    .app-button:hover {
+        background-color: rgba(255, 254, 244, 0.1);
+        transform: translateY(-2px);
     }
 
-    .message-toast.error {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fca5a5;
+    @media (max-width: 640px) {
+        .app-button {
+            font-size: 1rem;
+            padding: 0.5rem 1.5rem;
+        }
     }
 </style>

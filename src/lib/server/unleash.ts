@@ -1,12 +1,13 @@
 import { startUnleash, type Unleash } from 'unleash-client';
 import { PUBLIC_UNLEASH_URL, PUBLIC_UNLEASH_CLIENT_KEY } from '$env/static/public';
+import { dev } from '$app/environment';
 
 let unleash: Unleash | null = null;
 let isReady = false;
 
-// Mock Unleash instance - all flags disabled by default when Unleash is unavailable
+// Mock Unleash instance - enable-platform only in dev mode
 const mockUnleash = {
-    isEnabled: () => false,
+    isEnabled: (name: string) => dev && name === 'enable-platform',
     getVariant: () => ({ name: 'disabled', enabled: false }),
 } as unknown as Unleash;
 

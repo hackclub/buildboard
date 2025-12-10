@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 626.46 378.62">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#_ÕÓ_È_Ó·_ÁÂ_ËÂÌÚ_2);
+        mix-blend-mode: multiply;
+        opacity: .7;
+      }
+
+      .cls-2 {
+        fill: #414e52;
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-5);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-5 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-6 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-7 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-8 {
+        isolation: isolate;
+      }
+
+      .cls-9 {
+        fill: #8d9da6;
+      }
+
+      .cls-10 {
+        fill: #b4c4cd;
+      }
+
+      .cls-11 {
+        fill: #e1e8ec;
+      }
+
+      .cls-12 {
+        fill: #283539;
+      }
+
+      .cls-13 {
+        fill: #5b686c;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="27.61" y1="215.74" x2="12.96" y2="215.74" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#d3dade"/>
+      <stop offset=".18" stop-color="#e1e9ed"/>
+      <stop offset="1" stop-color="#9aaab3"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="39.4" y1="376.68" x2="-.9" y2="376.68" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="613.1" x2="598.45" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="313.3" y1="13.42" x2="313.3" y2="140.73" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#d8e1eb"/>
+    </linearGradient>
+    <linearGradient id="_ÕÓ_È_Ó·_ÁÂ_ËÂÌÚ_2" data-name="ÕÓ‚˚È Ó·‡ÁÂˆ „‡‰ËÂÌÚ‡ 2" x1="312.25" y1="156.75" x2="312.25" y2="141.53" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-5" x1="624.89" y1="376.68" x2="584.59" y2="376.68" xlink:href="#linear-gradient"/>
+  </defs>
+  <g class="cls-8">
+    <g id="Layer_2" data-name="Layer 2">
+      <g id="_ÎÓÈ_1" data-name="—ÎÓÈ_1">
+        <g>
+          <rect class="cls-2" x="116.56" y="156.28" width="395.09" height="2.61"/>
+          <g>
+            <rect class="cls-2" x="114.95" y="9.17" width="396.7" height="135.23"/>
+            <rect class="cls-13" x="123.25" y="144.39" width="378" height="11.89"/>
+            <path d="M506.32,138.8H120.06c-.32,0-.57-.26-.57-.57s.26-.57.57-.57h386.26c.32,0,.57.26.57.57s-.26.57-.57.57Z"/>
+            <g>
+              <rect x="120.56" y="138.23" width=".57" height="18.05"/>
+              <rect x="163.24" y="138.26" width=".57" height="18.05"/>
+              <rect x="205.92" y="138.28" width=".57" height="18.05"/>
+              <rect x="248.6" y="138.3" width=".57" height="18.05"/>
+              <rect x="291.28" y="138.32" width=".57" height="18.05"/>
+              <rect x="333.95" y="138.34" width=".57" height="18.05"/>
+              <rect x="376.63" y="138.36" width=".57" height="18.05"/>
+              <rect x="419.31" y="138.38" width=".57" height="18.05"/>
+              <rect x="461.99" y="138.4" width=".57" height="18.05"/>
+              <rect x="504.67" y="138.42" width=".57" height="18.05"/>
+            </g>
+            <g>
+              <g>
+                <rect class="cls-12" x="157.9" y="4.13" width="1.5" height="5.62"/>
+                <rect class="cls-2" x="151.48" width="14.35" height="5.04"/>
+              </g>
+              <g>
+                <rect class="cls-12" x="258.71" y="4.13" width="1.5" height="5.62"/>
+                <rect class="cls-2" x="252.28" width="14.35" height="5.04"/>
+              </g>
+              <g>
+                <rect class="cls-12" x="359.51" y="4.13" width="1.5" height="5.62"/>
+                <rect class="cls-2" x="353.09" width="14.35" height="5.04"/>
+              </g>
+              <g>
+                <rect class="cls-12" x="460.31" y="4.13" width="1.5" height="5.62"/>
+                <rect class="cls-2" x="453.89" width="14.35" height="5.04"/>
+              </g>
+              <g>
+                <rect class="cls-2" x="25.78" y="73.26" width="1.95" height="7.44"/>
+                <g>
+                  <rect class="cls-7" x="13.29" y="52.85" width="14.89" height="325.77"/>
+                  <rect class="cls-2" x="599.91" y="73.26" width="1.95" height="7.44"/>
+                  <polygon class="cls-9" points="587.3 374.74 598.77 374.74 598.77 360.6 587.3 374.74"/>
+                  <rect class="cls-11" x="605.8" y="360.6" width=".83" height="14.14"/>
+                  <rect class="cls-6" y="374.74" width="40.97" height="3.88"/>
+                  <g>
+                    <rect class="cls-5" x="598.77" y="52.85" width="14.89" height="325.77"/>
+                    <path class="cls-2" d="M27.73,61.12v32.82h572.17v-32.82H27.73ZM30,91.69v-28.3h50.26l-42.92,28.3h-7.34ZM91.06,91.69h-49.61l42.92-28.3h6.69v28.3ZM93.32,91.69v-28.3h7.43l42.92,28.3h-50.35ZM154.38,91.69h-6.6l-42.92-28.3h49.52v28.3ZM217.7,91.69h-61.06v-28.3h61.06v28.3ZM281.03,91.69h-61.06v-28.3h61.06v28.3ZM344.35,91.69h-61.06v-28.3h61.06v28.3ZM407.67,91.69h-61.06v-28.3h61.06v28.3ZM471,91.69h-61.06v-28.3h61.06v28.3ZM473.26,91.69v-28.3h51.02l-42.92,28.3h-8.11ZM534.32,91.69h-48.84l42.92-28.3h5.93v28.3ZM536.58,91.69v-28.3h8.19l42.91,28.3h-51.11ZM597.64,91.69h-5.84l-42.92-28.3h48.76v28.3Z"/>
+                    <rect class="cls-4" x="119.21" y="13.12" width="388.17" height="126.7"/>
+                    <rect class="cls-1" x="123.25" y="144.39" width="378" height="11.89"/>
+                    <polygon class="cls-10" points="625.14 374.74 613.67 374.74 613.67 360.6 625.14 374.74"/>
+                    <rect class="cls-3" x="585.49" y="374.74" width="40.97" height="3.88"/>
+                    <polygon class="cls-9" points="1.81 374.74 13.28 374.74 13.28 360.6 1.81 374.74"/>
+                    <polygon class="cls-10" points="39.65 374.74 28.18 374.74 28.18 360.6 39.65 374.74"/>
+                    <rect class="cls-11" x="20.31" y="360.6" width=".83" height="14.14"/>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

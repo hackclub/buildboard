@@ -14,7 +14,8 @@ export async function GET({ cookies, fetch }) {
 
         const response = await fetch(getBackendUrl(`/users/${userID}`), {
             headers: {
-                'Authorization': `${BEARER_TOKEN_BACKEND}`
+                'Authorization': `${BEARER_TOKEN_BACKEND}`,
+                'X-User-ID': userID
             }
         });
 
