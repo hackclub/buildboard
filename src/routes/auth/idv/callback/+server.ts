@@ -68,6 +68,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
                     console.error('Another user already has this identity linked');
                     throw redirect(302, '/?error=' + encodeURIComponent('This identity is already linked to another account.'));
                 }
+            } else {
+                const hashedUserID = hashUserID(existingUser.user_id);
+                cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
+                cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
+                throw redirect(302, returnTo);
             }
         }
 
