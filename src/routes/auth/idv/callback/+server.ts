@@ -6,7 +6,7 @@ import { idv } from '$lib/server/idv';
 import { dev } from '$app/environment';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
-    const returnTo = cookies.get('idv_return_to') || '/home';
+    const returnTo = cookies.get('idv_return_to') || '/onboarding';
     
     if (idv.isBypassed() || url.searchParams.get('bypassed') === 'true') {
         cookies.delete('idv_state', { path: '/' });
