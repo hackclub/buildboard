@@ -77,7 +77,7 @@
             {#each projects as project}
                 <button
                     type="button"
-                    class="flex justify-between items-center p-3 rounded border text-left transition-colors
+                    class="flex justify-between items-center p-3 border text-left transition-colors
                         {selectedKeys.includes(project.name)
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-neutral-200 hover:border-neutral-300 text-neutral-700'}"

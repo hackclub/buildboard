@@ -82,7 +82,7 @@
         padding: 0.75rem 1rem;
         font-size: 1.5rem; /* Increased font size */
         border: none; /* Remove border */
-        border-radius: 0.5rem;
+        border-radius: 0;
         background: transparent; /* Transparent background */
         backdrop-filter: none;   /* Remove blur */
         transition: all 0.2s ease;
@@ -108,7 +108,7 @@
         color: transparent; /* Text transparent (invisible) */
         background-color: transparent; /* Transparent background */
         border: none; /* Remove border */
-        border-radius: 0.5rem;
+        border-radius: 0;
         cursor: pointer;
         transition: none; /* Remove transition for invisible button */
         white-space: nowrap; /* Ensure text doesn't wrap awkwardly */

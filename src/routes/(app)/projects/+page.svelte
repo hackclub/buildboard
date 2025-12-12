@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { PageData } from "./$types";
     import TaskChecklist from "$lib/components/TaskChecklist.svelte";
+    import VisibilityMeter from "$lib/components/VisibilityMeter.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -38,6 +39,11 @@
         <h1>Your Project</h1>
         <p>Focus on one thing. Ship it. Make it great.</p>
     </header>
+
+    <!-- Visibility Meter -->
+    <div class="visibility-section">
+        <VisibilityMeter visibility={data.visibility} hasProjects={data.projects.length > 0} projectId={mainProject?.project_id} />
+    </div>
 
     <!-- Tasks -->
     <div class="tasks-section">
@@ -85,17 +91,6 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10" />
                             <polyline points="12,6 12,12 16,14" />
-                        </svg>
-                    </div>
-                    <div class="stat-content">
-                        <span class="stat-value">{formatTime(mainProject.time_spent)}</span>
-                        <span class="stat-label">This Project</span>
-                    </div>
-                </div>
-                <div class="stat">
-                    <div class="stat-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                         </svg>
                     </div>
                     <div class="stat-content">
@@ -191,7 +186,7 @@
     /* Cards */
     .card {
         background: rgba(46, 34, 33, 0.95);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 1.5rem 2rem;
         margin-bottom: 1rem;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -340,7 +335,7 @@
         color: var(--bb-bg-dark);
         font-weight: 600;
         font-size: 0.9rem;
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         transition: all 0.2s;
         box-shadow: 
@@ -364,7 +359,7 @@
         color: var(--bb-text-secondary);
         font-weight: 500;
         font-size: 0.9rem;
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         transition: all 0.2s;
     }
@@ -387,7 +382,7 @@
         justify-content: space-between;
         padding: 0.875rem 1rem;
         background: rgba(255, 255, 255, 0.03);
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         transition: all 0.2s;
     }

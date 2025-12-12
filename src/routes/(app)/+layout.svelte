@@ -6,17 +6,10 @@
     import { onMount } from "svelte";
 
     let { children } = $props();
-    let platformEnabled = $derived($page.data.flags?.enablePlatform);
 
     let user = $derived(getUser());
     let loading = $derived(isLoading());
     let mobileMenuOpen = $state(false);
-
-    $effect(() => {
-        if (browser && !platformEnabled) {
-            goto("/");
-        }
-    });
 
     onMount(async () => {
         if (browser) {
@@ -36,8 +29,7 @@
     }
 </script>
 
-{#if platformEnabled}
-    {#if loading && !user}
+{#if loading && !user}
         <div class="loading-screen">
             <div class="loading-spinner"></div>
             <p>Loading...</p>
@@ -201,7 +193,6 @@
             </main>
         </div>
     {/if}
-{/if}
 
 <style>
     .app-background {
@@ -245,7 +236,7 @@
         height: 40px;
         border: 3px solid var(--bb-accent-dark);
         border-top-color: var(--bb-primary);
-        border-radius: 50%;
+        border-radius: 0;
         animation: spin 0.8s linear infinite;
     }
 
@@ -275,7 +266,7 @@
         color: var(--bb-text-primary);
         cursor: pointer;
         padding: 0.5rem;
-        border-radius: 8px;
+        border-radius: 6px;
         transition: background 0.2s;
     }
 
@@ -335,7 +326,7 @@
     .logo-img {
         width: 36px;
         height: 36px;
-        border-radius: 8px;
+        border-radius: 6px;
     }
 
     .logo-text {
@@ -350,7 +341,7 @@
         gap: 0.75rem;
         padding: 0.75rem;
         margin-bottom: 1.5rem;
-        border-radius: 10px;
+        border-radius: 8px;
         background: rgba(109, 46, 43, 0.3);
         border: 1px solid var(--bb-accent-dark);
         text-decoration: none;
@@ -415,7 +406,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem;
-        border-radius: 8px;
+        border-radius: 6px;
         text-decoration: none;
         color: var(--bb-text-secondary);
         font-size: 0.9rem;

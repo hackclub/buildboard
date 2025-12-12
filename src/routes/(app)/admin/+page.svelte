@@ -8,7 +8,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Manage Projects -->
         <div
-            class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200"
+            class="bg-white p-6 shadow-sm border border-neutral-200"
         >
             <h2 class="text-xl font-bold text-neutral-700 mb-4">
                 Manage Projects
@@ -17,7 +17,7 @@
                 View and manage all user projects.
             </p>
             <button
-                class="w-full bg-neutral-800 text-white py-2 rounded-md hover:bg-neutral-700 transition-colors"
+                class="w-full bg-neutral-800 text-white py-2 hover:bg-neutral-700 transition-colors"
             >
                 View Projects
             </button>
@@ -25,7 +25,7 @@
 
         <!-- Manage Users -->
         <div
-            class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200"
+            class="bg-white p-6 shadow-sm border border-neutral-200"
         >
             <h2 class="text-xl font-bold text-neutral-700 mb-4">
                 Manage Users
@@ -34,7 +34,7 @@
                 View user details and manage permissions.
             </p>
             <button
-                class="w-full bg-neutral-800 text-white py-2 rounded-md hover:bg-neutral-700 transition-colors"
+                class="w-full bg-neutral-800 text-white py-2 hover:bg-neutral-700 transition-colors"
             >
                 View Users
             </button>
@@ -42,7 +42,7 @@
 
         <!-- System Stats -->
         <div
-            class="bg-white p-6 rounded-lg shadow-sm border border-neutral-200"
+            class="bg-white p-6 shadow-sm border border-neutral-200"
         >
             <h2 class="text-xl font-bold text-neutral-700 mb-4">
                 System Stats
@@ -51,7 +51,7 @@
                 View platform usage and statistics.
             </p>
             <button
-                class="w-full bg-neutral-800 text-white py-2 rounded-md hover:bg-neutral-700 transition-colors"
+                class="w-full bg-neutral-800 text-white py-2 hover:bg-neutral-700 transition-colors"
             >
                 View Stats
             </button>

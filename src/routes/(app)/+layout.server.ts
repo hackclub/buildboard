@@ -9,10 +9,6 @@ function hasRole(user: any, roleId: string): boolean {
 }
 
 export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
-    if (!locals.flags.isEnabled('enable-platform')) {
-        throw redirect(303, '/');
-    }
-
     const hashedUserID = cookies.get('userID');
 
     if (!hashedUserID) {
@@ -94,10 +90,47 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         console.error('Failed to fetch projects:', e);
     }
 
+    // Fetch visibility for main project (or show Hidden if no projects)
+    let visibility: any = {
+        current_level: 1,
+        current_level_name: "Hidden",
+        next_level: 2,
+        next_level_name: "Local",
+        progress_percentage: 0,
+        milestones: [
+            { id: "github", name: "Link GitHub", description: "Connect your GitHub repository", completed: false, level: 2 },
+            { id: "hackatime", name: "Link Hackatime", description: "Connect your Hackatime project to track hours", completed: false, level: 2 },
+            { id: "shipped", name: "Ship It", description: "Mark your project as shipped", completed: false, level: 3 },
+            { id: "approved", name: "Get Approved", description: "Submit for admin review and get approved", completed: false, level: 4 },
+            { id: "hours", name: "Log 30+ Hours", description: "Track at least 30 hours in Hackatime", completed: false, level: 5 }
+        ],
+        total_completed: 0,
+        total_milestones: 5
+    };
+    
+    if (projects.length > 0) {
+        const sortedProjects = [...projects].sort((a, b) => 
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        const mainProject = sortedProjects[0];
+        try {
+            const visibilityResponse = await fetch(
+                getBackendUrl(`/projects/${mainProject.project_id}/visibility`),
+                { headers: { 'Authorization': `${BEARER_TOKEN_BACKEND}` } }
+            );
+            if (visibilityResponse.ok) {
+                visibility = await visibilityResponse.json();
+            }
+        } catch (e) {
+            console.error('Failed to fetch visibility:', e);
+        }
+    }
+
     return {
         user,
         setupStatus,
         projects,
+        visibility,
         isReviewer: hasRole(user, 'reviewer') || hasRole(user, 'admin'),
         isAdmin: hasRole(user, 'admin'),
     };

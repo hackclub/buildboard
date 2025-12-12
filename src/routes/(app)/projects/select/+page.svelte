@@ -136,7 +136,7 @@
         gap: 1rem;
         padding: 1.25rem 1.25rem 1.25rem 1.5rem;
         background: linear-gradient(165deg, rgba(46, 34, 33, 0.95) 0%, rgba(35, 25, 24, 0.95) 100%);
-        border-radius: 12px;
+        border-radius: 0;
         border: 1px solid var(--bb-accent-dark);
         text-decoration: none;
         overflow: hidden;
@@ -160,7 +160,7 @@
         top: 0;
         bottom: 0;
         width: 4px;
-        border-radius: 12px 0 0 12px;
+        border-radius: 0;
         box-shadow: 
             inset 0 1px 0 rgba(255, 255, 255, 0.3),
             inset 0 -1px 0 rgba(0, 0, 0, 0.2);
@@ -172,7 +172,7 @@
         justify-content: center;
         width: 52px;
         height: 52px;
-        border-radius: 12px;
+        border-radius: 0;
         border: 1px solid;
         flex-shrink: 0;
     }
