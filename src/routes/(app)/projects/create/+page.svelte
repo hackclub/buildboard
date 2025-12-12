@@ -86,6 +86,26 @@
         </div>
     </header>
 
+    <!-- Requirements Notice -->
+    <div class="requirements-notice">
+        <div class="requirements-header">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span>Submission Requirements</span>
+        </div>
+        <p>To submit your project for review, you'll need:</p>
+        <ul>
+            <li>GitHub repository URL</li>
+            <li>Live/playable project URL</li>
+            <li>At least one screenshot</li>
+            <li>Linked Hackatime project</li>
+        </ul>
+        <p class="requirements-note">You can add these after creating your project.</p>
+    </div>
+
     <!-- Form Card -->
     <div class="card">
         {#if error}
@@ -196,6 +216,52 @@
         font-size: 0.9rem;
         color: var(--bb-text-muted);
         margin: 0;
+    }
+
+    /* Requirements Notice */
+    .requirements-notice {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 0;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .requirements-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #93c5fd;
+        margin-bottom: 0.5rem;
+    }
+
+    .requirements-header svg {
+        color: #60a5fa;
+    }
+
+    .requirements-notice p {
+        font-size: 0.85rem;
+        color: var(--bb-text-muted);
+        margin: 0 0 0.5rem;
+    }
+
+    .requirements-notice ul {
+        margin: 0 0 0.5rem;
+        padding-left: 1.25rem;
+    }
+
+    .requirements-notice li {
+        font-size: 0.85rem;
+        color: var(--bb-text-secondary);
+        margin-bottom: 0.25rem;
+    }
+
+    .requirements-note {
+        font-style: italic;
+        font-size: 0.8rem !important;
+        color: var(--bb-text-muted) !important;
+        margin-bottom: 0 !important;
     }
 
     /* Card */
