@@ -61,12 +61,12 @@
     }
 </script>
 
-<div class="bg-white rounded-lg shadow p-4">
+<div class="bg-white shadow p-4">
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">README Editor</h2>
         <div class="flex space-x-2">
             <button
-                class="px-3 py-1 rounded {activeTab === 'edit'
+                class="px-3 py-1 {activeTab === 'edit'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700'}"
                 on:click={() => (activeTab = "edit")}
@@ -74,7 +74,7 @@
                 Edit
             </button>
             <button
-                class="px-3 py-1 rounded {activeTab === 'preview'
+                class="px-3 py-1 {activeTab === 'preview'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-700'}"
                 on:click={() => (activeTab = "preview")}
@@ -86,12 +86,12 @@
 
     {#if activeTab === "edit"}
         <textarea
-            class="w-full h-96 p-2 border rounded font-mono text-sm"
+            class="w-full h-96 p-2 border font-mono text-sm"
             bind:value={content}
         ></textarea>
     {:else}
         <div
-            class="w-full h-96 p-2 border rounded overflow-auto prose max-w-none"
+            class="w-full h-96 p-2 border overflow-auto prose max-w-none"
         >
             {@html previewHtml}
         </div>
@@ -107,7 +107,7 @@
             {/if}
         </div>
         <button
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+            class="bg-green-600 text-white px-4 py-2 hover:bg-green-700 disabled:opacity-50"
             on:click={saveReadme}
             disabled={saving}
         >

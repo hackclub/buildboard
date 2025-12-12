@@ -1,8 +1,5 @@
 <script>
-    import { page } from '$app/stores';
     import EmailSignup from '$lib/components/EmailSignup.svelte';
-    
-    let platformEnabled = $derived($page.data.flags?.enablePlatform);
 </script>
 
 <div class="landing-container">
@@ -12,22 +9,15 @@
     </div>
 
     <div class="hero-section">
-        <img src="/wallpaper.png" alt="" class="hero-bg" />
+        <img src="/buildboard-background.png" alt="" class="hero-bg" />
         
-        <!-- Bottom left email signup -->
-<!--        <div class="hero-text">-->
-<!--            <h1 class="hero-title"> BuildBoard</h1>-->
-<!--            <p class="hero-subtitle">This is a placeholder </p>-->
-<!--        </div>-->
         <div class="signup-wrapper">
             <EmailSignup 
                 headerText="Get started with BuildBoard!"
                 placeholder="your@email.com"
                 buttonText="Get started"
             />
-            {#if platformEnabled}
-                <a href="/home" class="app-button">Enter App</a>
-            {/if}
+            <a href="/home" class="app-button">Enter App</a>
         </div>
     </div>
 

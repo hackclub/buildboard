@@ -3,6 +3,7 @@
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
+    import { page } from "$app/stores";
 
     interface Author {
         id: string;
@@ -30,13 +31,13 @@
         },
         {
             image: "/slides/slide_two.jpg",
-            text: "BuildBoard is your chance. Commit to one project and watch it go through a series of milestones.",
+            text: "Here's how it works: Link your GitHub repo and Hackatime to start tracking your progress.",
             showCharacterSelect: false,
             showTerms: false
         },
         {
             image: "/slides/slide_two.jpg",
-            text: "See your project on Magic Happening → Hacker News → YouTube Short → NYC Billboard.",
+            text: "Ship your project, get it approved, and log 30+ hours to reach Billboard status.",
             showCharacterSelect: false,
             showTerms: false
         },
@@ -166,13 +167,27 @@
     }
 
     async function completeOnboarding() {
-        const user = getUser();
+        // Use server-side data first, fall back to client state
+        let user = $page.data.user || getUser();
+        
+        // If user still isn't loaded, try to fetch them
+        if (!user) {
+            user = await updateUser();
+        }
+        
         if (user) {
-            await fetch(`/api/users/${user.user_id}/onboarding-complete`, {
+            const response = await fetch(`/api/users/${user.user_id}/onboarding-complete`, {
                 method: 'POST'
             });
+            
+            if (!response.ok) {
+                console.error('Failed to complete onboarding:', await response.text());
+            }
+            
+            // Wait for user state to update before navigating
             await updateUser();
         }
+        
         goto("/home");
     }
 
@@ -204,15 +219,8 @@
 
     onMount(async () => {
         if (browser) {
-            const user = await updateUser();
-            if (!user) {
-                goto("/");
-                return;
-            }
-            if (user.onboarding_completed_at) {
-                goto("/home");
-                return;
-            }
+            // Server already validated auth and redirects if needed
+            // Just start the typewriter effect
             typeText(slides[0].text);
         }
     });
@@ -479,7 +487,7 @@
         left: 50px;
         background: #e94560;
         padding: 8px 20px;
-        border-radius: 6px 6px 0 0;
+        border-radius: 0;
     }
 
     .dialogue-speaker {
@@ -534,7 +542,7 @@
         color: white;
         border: 1px solid rgba(255, 255, 255, 0.2);
         padding: 12px 24px;
-        border-radius: 8px;
+        border-radius: 0;
         font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -556,7 +564,7 @@
         background: rgba(28, 28, 28, 0.95);
         backdrop-filter: blur(10px);
         border: 2px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
+        border-radius: 0;
         padding: 24px;
         max-width: 600px;
         width: calc(100% - 48px);
@@ -586,7 +594,7 @@
     .terms-box {
         background: rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 20px;
         max-height: 250px;
         overflow-y: auto;
@@ -617,7 +625,7 @@
         padding: 14px;
         background: rgba(233, 69, 96, 0.1);
         border: 2px solid rgba(233, 69, 96, 0.3);
-        border-radius: 8px;
+        border-radius: 0;
         transition: all 0.2s ease;
     }
 
@@ -661,7 +669,7 @@
         width: 100%;
         padding: 16px 24px;
         border: 2px solid #343a40;
-        border-radius: 8px;
+        border-radius: 0;
         font-size: 1rem;
         font-weight: 700;
         cursor: not-allowed;

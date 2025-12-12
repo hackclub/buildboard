@@ -26,6 +26,7 @@
 		"vite": "^7.1.7"
 	},
 	"dependencies": {
+		"@hackclub/icons": "^0.0.15",
 		"@sveltejs/adapter-node": "^5.4.0",
 		"@types/dompurify": "^3.0.5",
 		"@unleash/proxy-client-svelte": "^0.4.3",

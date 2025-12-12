@@ -18,7 +18,7 @@
         color: white;
         text-shadow: 1px 1px 2px black;
         padding: 2.5rem;
-        border-radius: 1rem;
+        border-radius: 0;
         transition: all 0.3s ease;
         max-height: 100%;
     }

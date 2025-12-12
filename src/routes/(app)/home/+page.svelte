@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { PageData } from "./$types";
     import TaskChecklist from "$lib/components/TaskChecklist.svelte";
+    import VisibilityMeter from "$lib/components/VisibilityMeter.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -11,11 +12,14 @@
         return "Good evening";
     });
 
-    let recentProjects = $derived(
+    let sortedProjects = $derived(
         (data.projects || [])
             .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 3)
     );
+
+    let mainProject = $derived(sortedProjects[0] || null);
+
+    let recentProjects = $derived(sortedProjects.slice(0, 3));
 
     const announcements = [
         {
@@ -29,8 +33,17 @@
 
     let dismissedAnnouncements = $state<number[]>([]);
 
+    // Load dismissed announcements from localStorage on mount
+    $effect(() => {
+        const stored = localStorage.getItem('dismissedAnnouncements');
+        if (stored) {
+            dismissedAnnouncements = JSON.parse(stored);
+        }
+    });
+
     function dismissAnnouncement(id: number) {
         dismissedAnnouncements = [...dismissedAnnouncements, id];
+        localStorage.setItem('dismissedAnnouncements', JSON.stringify(dismissedAnnouncements));
     }
 
     function formatTime(minutes: number): string {
@@ -77,23 +90,9 @@
         </div>
     </header>
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-pill">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-            </svg>
-            <span class="stat-value">{data.projects?.length || 0}</span>
-            <span class="stat-label">Projects</span>
-        </div>
-        <div class="stat-pill">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12,6 12,12 16,14" />
-            </svg>
-            <span class="stat-value">{formatTime(totalTime)}</span>
-            <span class="stat-label">Logged</span>
-        </div>
+    <!-- Visibility Meter -->
+    <div class="visibility-section">
+        <VisibilityMeter visibility={data.visibility} hasProjects={(data.projects?.length || 0) > 0} projectId={mainProject?.project_id} />
     </div>
 
     <!-- Main Grid -->
@@ -171,7 +170,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0.875rem 1.25rem;
-        border-radius: 8px;
+        border-radius: 0;
         margin-bottom: 1.5rem;
         box-shadow: 
             0 4px 12px rgba(0, 0, 0, 0.15),
@@ -221,7 +220,7 @@
         text-decoration: none;
         padding: 0.35rem 0.75rem;
         background: rgba(255, 255, 255, 0.15);
-        border-radius: 4px;
+        border-radius: 0;
         transition: background 0.2s;
     }
 
@@ -275,7 +274,7 @@
         padding: 0.6rem 1rem;
         background: rgba(46, 34, 33, 0.95);
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 6px;
+        border-radius: 0;
         color: var(--bb-text-primary);
         box-shadow: 
             0 2px 8px rgba(0, 0, 0, 0.2),
@@ -309,7 +308,7 @@
     .section-card {
         background: linear-gradient(165deg, rgba(46, 34, 33, 0.95) 0%, rgba(35, 25, 24, 0.95) 100%);
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 1.25rem;
         box-shadow: 
             0 4px 16px rgba(0, 0, 0, 0.2),
@@ -371,7 +370,7 @@
         padding: 0.875rem 1rem;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid transparent;
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         transition: all 0.2s;
     }
@@ -389,7 +388,7 @@
         align-items: center;
         justify-content: center;
         background: rgba(109, 46, 43, 0.4);
-        border-radius: 6px;
+        border-radius: 0;
         font-size: 1.25rem;
     }
 
@@ -441,7 +440,7 @@
         color: var(--bb-bg-dark);
         font-weight: 600;
         font-size: 0.9rem;
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         transition: all 0.2s;
         box-shadow: 
@@ -480,7 +479,7 @@
         color: var(--bb-bg-dark);
         font-weight: 600;
         font-size: 0.85rem;
-        border-radius: 4px;
+        border-radius: 0;
         text-decoration: none;
     }
 

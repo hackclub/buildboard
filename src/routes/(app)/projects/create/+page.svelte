@@ -181,7 +181,7 @@
         height: 48px;
         background: rgba(255, 184, 89, 0.15);
         border: 1px solid rgba(255, 184, 89, 0.3);
-        border-radius: 8px;
+        border-radius: 0;
         color: var(--bb-primary);
     }
 
@@ -201,7 +201,7 @@
     /* Card */
     .card {
         background: rgba(46, 34, 33, 0.95);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 2rem;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
@@ -226,7 +226,7 @@
         padding: 0.75rem 1rem;
         background: rgba(0, 0, 0, 0.2);
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 6px;
+        border-radius: 0;
         color: var(--bb-text-primary);
         font-size: 0.95rem;
         font-family: inherit;
@@ -261,7 +261,7 @@
         padding: 0.75rem 1rem;
         background: rgba(127, 29, 29, 0.3);
         border: 1px solid rgba(185, 28, 28, 0.5);
-        border-radius: 6px;
+        border-radius: 0;
         color: #fca5a5;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
@@ -280,7 +280,7 @@
         font-weight: 600;
         font-size: 1rem;
         border: none;
-        border-radius: 6px;
+        border-radius: 0;
         cursor: pointer;
         transition: all 0.2s;
         box-shadow: 

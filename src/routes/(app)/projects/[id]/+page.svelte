@@ -1,10 +1,22 @@
 <script lang="ts">
     import type { PageData } from "./$types";
     import ReadmeEditor from "$lib/components/ReadmeEditor.svelte";
+    import HackatimeSelector from "$lib/components/HackatimeSelector.svelte";
 
     export let data: PageData;
 
     let { project, readme } = data;
+
+    let isEditing = false;
+    let editName = project.project_name;
+    let editDescription = project.project_description || "";
+    let saving = false;
+    let saveError = "";
+
+    let isEditingHackatime = false;
+    let hackatimeKeys: string[] = project.hackatime_projects || [];
+    let savingHackatime = false;
+    let hackatimeError = "";
     
     function getSafeUrl(url: string | null | undefined): string | null {
         if (!url) return null;
@@ -22,8 +34,7 @@
     $: safeLiveUrl = getSafeUrl(project.live_url);
     $: safeCodeUrl = getSafeUrl(project.code_url);
     let linking = false;
-    let installationId = "";
-    let repoPath = "";
+    let repoInput = "";
     let linkMessage = "";
     let linkError = "";
 
@@ -34,7 +45,92 @@
         return `${hours}h ${mins}m`;
     }
 
+    function formatHours(hours: number | null | undefined): string {
+        if (!hours) return "0h 0m";
+        const h = Math.floor(hours);
+        const m = Math.round((hours - h) * 60);
+        return `${h}h ${m}m`;
+    }
+
+    async function saveProject() {
+        if (!editName.trim()) {
+            saveError = "Project name is required";
+            return;
+        }
+
+        saving = true;
+        saveError = "";
+
+        try {
+            const res = await fetch(`/api/projects/${project.project_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    project_name: editName.trim(),
+                    project_description: editDescription.trim()
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to save");
+            }
+
+            const updated = await res.json();
+            project = { ...project, ...updated };
+            isEditing = false;
+        } catch (e: any) {
+            saveError = e.message;
+        } finally {
+            saving = false;
+        }
+    }
+
+    function cancelEdit() {
+        editName = project.project_name;
+        editDescription = project.project_description || "";
+        saveError = "";
+        isEditing = false;
+    }
+
+    async function saveHackatimeProjects() {
+        savingHackatime = true;
+        hackatimeError = "";
+
+        try {
+            const res = await fetch(`/api/projects/${project.project_id}/hackatime-projects`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ projectNames: hackatimeKeys })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to save");
+            }
+
+            const updated = await res.json();
+            project = { ...project, ...updated };
+            isEditingHackatime = false;
+        } catch (e: any) {
+            hackatimeError = e.message;
+        } finally {
+            savingHackatime = false;
+        }
+    }
+
+    function cancelHackatimeEdit() {
+        hackatimeKeys = project.hackatime_projects || [];
+        hackatimeError = "";
+        isEditingHackatime = false;
+    }
+
     async function linkRepo() {
+        if (!repoInput.trim()) {
+            linkError = "Please enter a GitHub repository";
+            return;
+        }
+
         linking = true;
         linkError = "";
         linkMessage = "";
@@ -48,8 +144,7 @@
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
-                        installation_id: installationId,
-                        repo_path: repoPath,
+                        repo_path: repoInput.trim(),
                     }),
                 },
             );
@@ -84,11 +179,55 @@
 
     <!-- Project Header Card -->
     <div class="card header-card">
-        <div class="project-badge">Week {project.submission_week}</div>
+        <div class="card-top-row">
+            <div class="project-badge">Week {project.submission_week}</div>
+            {#if !isEditing}
+                <button class="edit-btn" on:click={() => isEditing = true}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                </button>
+            {/if}
+        </div>
         
-        <h1>{project.project_name}</h1>
-        {#if project.project_description}
-            <p class="project-description">{project.project_description}</p>
+        {#if isEditing}
+            <div class="edit-form">
+                <div class="form-group">
+                    <label for="edit-name">Project Name</label>
+                    <input
+                        id="edit-name"
+                        type="text"
+                        bind:value={editName}
+                        placeholder="Project name"
+                        maxlength="200"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea
+                        id="edit-description"
+                        bind:value={editDescription}
+                        placeholder="Project description"
+                        rows="3"
+                    ></textarea>
+                </div>
+                {#if saveError}
+                    <div class="form-error">{saveError}</div>
+                {/if}
+                <div class="edit-actions">
+                    <button class="btn-secondary" on:click={cancelEdit} disabled={saving}>Cancel</button>
+                    <button class="btn-primary" on:click={saveProject} disabled={saving}>
+                        {saving ? "Saving..." : "Save Changes"}
+                    </button>
+                </div>
+            </div>
+        {:else}
+            <h1>{project.project_name}</h1>
+            {#if project.project_description}
+                <p class="project-description">{project.project_description}</p>
+            {/if}
         {/if}
 
         <div class="stats-row">
@@ -97,7 +236,7 @@
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12,6 12,12 16,14" />
                 </svg>
-                <span class="stat-value">{formatTime(project.time_spent || 0)}</span>
+                <span class="stat-value">{formatHours(project.hackatime_hours)}</span>
                 <span class="stat-label">logged</span>
             </div>
         </div>
@@ -124,8 +263,53 @@
         </div>
     </div>
 
+    <!-- Hackatime Projects Card -->
+    <div class="card" id="hackatime">
+        <div class="card-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12,6 12,12 16,14" />
+                </svg>
+                Hackatime Projects
+            </h2>
+            {#if !isEditingHackatime}
+                <button class="edit-btn-small" on:click={() => isEditingHackatime = true}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                </button>
+            {/if}
+        </div>
+
+        {#if isEditingHackatime}
+            <div class="hackatime-edit">
+                <HackatimeSelector bind:selectedKeys={hackatimeKeys} />
+                {#if hackatimeError}
+                    <div class="form-error">{hackatimeError}</div>
+                {/if}
+                <div class="edit-actions">
+                    <button class="btn-secondary" on:click={cancelHackatimeEdit} disabled={savingHackatime}>Cancel</button>
+                    <button class="btn-primary" on:click={saveHackatimeProjects} disabled={savingHackatime}>
+                        {savingHackatime ? "Saving..." : "Save Hackatime Projects"}
+                    </button>
+                </div>
+            </div>
+        {:else if project.hackatime_projects && project.hackatime_projects.length > 0}
+            <div class="hackatime-list">
+                {#each project.hackatime_projects as name}
+                    <span class="hackatime-tag">{name}</span>
+                {/each}
+            </div>
+        {:else}
+            <p class="empty-hint">No Hackatime projects linked yet. Click Edit to add some.</p>
+        {/if}
+    </div>
+
     <!-- GitHub Integration Card -->
-    <div class="card">
+    <div class="card" id="github">
         <div class="card-header">
             <h2>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -158,23 +342,16 @@
                 </p>
 
                 <div class="form-group">
-                    <label for="installation-id">Installation ID</label>
+                    <label for="repo-input">GitHub Repository</label>
                     <input
-                        id="installation-id"
+                        id="repo-input"
                         type="text"
-                        bind:value={installationId}
-                        placeholder="e.g. 12345678"
+                        bind:value={repoInput}
+                        placeholder="owner/repo or https://github.com/owner/repo"
                     />
-                </div>
-
-                <div class="form-group">
-                    <label for="repo-path">Repository Path</label>
-                    <input
-                        id="repo-path"
-                        type="text"
-                        bind:value={repoPath}
-                        placeholder="e.g. owner/repo"
-                    />
+                    <p class="input-help">
+                        Paste a GitHub URL or enter owner/repo
+                    </p>
                 </div>
 
                 {#if linkError}
@@ -187,7 +364,7 @@
                 <button
                     class="btn-primary"
                     on:click={linkRepo}
-                    disabled={linking}
+                    disabled={linking || !repoInput.trim()}
                 >
                     {linking ? "Linking..." : "Link Repository"}
                 </button>
@@ -222,13 +399,16 @@
     /* Cards */
     .card {
         background: rgba(46, 34, 33, 0.95);
-        border-radius: 8px;
+        border-radius: 0;
         padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
     .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 1.25rem;
     }
 
@@ -240,6 +420,13 @@
         font-weight: 600;
         color: var(--bb-text-primary);
         margin: 0;
+    }
+
+    .card-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
     }
 
     /* Header Card */
@@ -256,8 +443,44 @@
         color: var(--bb-primary);
         background: rgba(255, 184, 89, 0.15);
         padding: 0.35rem 0.75rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
+        border-radius: 0;
+    }
+
+    .edit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--bb-accent-dark);
+        border-radius: 0;
+        color: var(--bb-text-muted);
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .edit-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--bb-text-primary);
+        border-color: var(--bb-primary);
+    }
+
+    .edit-btn-small {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.6rem;
+        background: transparent;
+        border: none;
+        color: var(--bb-text-muted);
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .edit-btn-small:hover {
+        color: var(--bb-primary);
     }
 
     .header-card h1 {
@@ -315,7 +538,7 @@
         padding: 0.6rem 1rem;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 6px;
+        border-radius: 0;
         color: var(--bb-text-secondary);
         font-size: 0.9rem;
         text-decoration: none;
@@ -328,6 +551,46 @@
         color: var(--bb-text-primary);
     }
 
+    /* Edit Form */
+    .edit-form {
+        margin-bottom: 1.5rem;
+    }
+
+    .edit-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    /* Hackatime */
+    .hackatime-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .hackatime-tag {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        background: rgba(255, 184, 89, 0.15);
+        border: 1px solid rgba(255, 184, 89, 0.3);
+        border-radius: 0;
+        color: var(--bb-primary);
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .hackatime-edit {
+        padding-top: 0.5rem;
+    }
+
+    .empty-hint {
+        font-size: 0.9rem;
+        color: var(--bb-text-muted);
+        font-style: italic;
+        margin: 0;
+    }
+
     /* Linked Repo */
     .linked-repo {
         display: flex;
@@ -336,7 +599,7 @@
         padding: 0.875rem 1rem;
         background: rgba(34, 84, 61, 0.3);
         border: 1px solid rgba(34, 84, 61, 0.5);
-        border-radius: 6px;
+        border-radius: 0;
         color: #86efac;
         font-size: 0.9rem;
         margin-bottom: 1.5rem;
@@ -373,31 +636,46 @@
         margin-bottom: 0.5rem;
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group textarea {
         width: 100%;
         padding: 0.65rem 0.875rem;
         background: rgba(0, 0, 0, 0.2);
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 6px;
+        border-radius: 0;
         color: var(--bb-text-primary);
         font-size: 0.9rem;
+        font-family: inherit;
         transition: border-color 0.2s;
     }
 
-    .form-group input::placeholder {
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
         color: var(--bb-text-muted);
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group textarea:focus {
         outline: none;
         border-color: var(--bb-primary);
+    }
+
+    .input-help {
+        font-size: 0.8rem;
+        color: var(--bb-text-muted);
+        margin: 0.5rem 0 0;
     }
 
     .form-error {
         padding: 0.65rem 0.875rem;
         background: rgba(127, 29, 29, 0.3);
         border: 1px solid rgba(185, 28, 28, 0.5);
-        border-radius: 6px;
+        border-radius: 0;
         color: #fca5a5;
         font-size: 0.85rem;
         margin-bottom: 1rem;
@@ -407,7 +685,7 @@
         padding: 0.65rem 0.875rem;
         background: rgba(34, 84, 61, 0.3);
         border: 1px solid rgba(34, 84, 61, 0.5);
-        border-radius: 6px;
+        border-radius: 0;
         color: #86efac;
         font-size: 0.85rem;
         margin-bottom: 1rem;
@@ -418,14 +696,13 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        width: 100%;
         padding: 0.75rem 1.25rem;
         background: linear-gradient(180deg, var(--bb-primary) 0%, var(--bb-primary-dark) 100%);
         color: var(--bb-bg-dark);
         font-weight: 600;
         font-size: 0.9rem;
         border: none;
-        border-radius: 6px;
+        border-radius: 0;
         cursor: pointer;
         transition: all 0.2s;
         box-shadow: 
@@ -441,6 +718,32 @@
     }
 
     .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--bb-text-secondary);
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 1px solid var(--bb-accent-dark);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--bb-text-primary);
+    }
+
+    .btn-secondary:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
@@ -461,6 +764,14 @@
 
         .project-links {
             flex-direction: column;
+        }
+
+        .edit-actions {
+            flex-direction: column;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
         }
     }
 </style>
