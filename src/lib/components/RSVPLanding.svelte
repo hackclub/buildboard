@@ -21,7 +21,7 @@
         </div>
     </div>
 
-<!--    <section class="middle-section">-->
+<!--    <section class="middle-section"> -->
 <!--    </section>-->
 
 <!--    <footer class="footer-section">-->
