@@ -89,7 +89,26 @@ export const actions: Actions = {
     }
 };
 
-export const load: PageServerLoad = async ({ cookies }) => {
+export const load: PageServerLoad = async ({ cookies, url }) => {
+    const utmFromUrl = url.searchParams.get('utm_source');
+    const utm_source =
+        utmFromUrl && utmFromUrl.trim().length > 0
+            ? utmFromUrl.trim()
+            : 'non referred';
+
+    try {
+        await fetch(getBackendUrl('/utms'), {
+            method: 'POST',
+            headers: {
+                'Authorization': `${BEARER_TOKEN_BACKEND}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ utm_source })
+        });
+    } catch (error) {
+        console.error('Error sending UTM data:', error);
+    }
+
     const hashedUserID = cookies.get('userID');
 
     if (!hashedUserID) {
