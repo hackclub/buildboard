@@ -59,21 +59,14 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         );
 
         if (duplicateCheckResponse.ok) {
+            // Identity is already linked to a user - log them in as that user
+            // The OAuth result is authoritative: if you authenticated with this identity,
+            // you become the user that owns it (regardless of any existing cookie)
             const existingUser = await duplicateCheckResponse.json();
-            const currentUserHash = cookies.get('userID');
-            
-            if (currentUserHash) {
-                const hashedUserID = hashUserID(existingUser.user_id);
-                if (hashedUserID !== currentUserHash) {
-                    console.error('Another user already has this identity linked');
-                    throw redirect(302, '/?error=' + encodeURIComponent('This identity is already linked to another account.'));
-                }
-            } else {
-                const hashedUserID = hashUserID(existingUser.user_id);
-                cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
-                cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
-                throw redirect(302, returnTo);
-            }
+            const hashedUserID = hashUserID(existingUser.user_id);
+            cookies.set('userID', hashedUserID, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
+            cookies.set('accessToken', accessToken, { path: '/', httpOnly: true, secure: !dev, sameSite: 'lax' });
+            throw redirect(302, returnTo);
         }
 
         const userResponse = await fetch(
