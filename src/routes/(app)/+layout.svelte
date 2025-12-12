@@ -55,7 +55,7 @@
                 <img
                     src={user.profile?.avatar_url || `https://ui-avatars.com/api/?name=${user.handle || 'U'}`}
                     alt="Avatar"
-                />
+                /> <!-- We could update this so It grabs slack avatars-->
             </a>
         </header>
 
@@ -88,7 +88,6 @@
                     />
                     <div class="user-info">
                         <span class="user-handle">@{user.handle || 'user'}</span>
-                        <span class="user-label">View Profile</span>
                     </div>
                 </a>
 

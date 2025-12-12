@@ -24,10 +24,10 @@
     const announcements = [
         {
             id: 1,
-            title: "🎉 Welcome to BuildBoard!",
-            content: "Track your coding hours, manage projects, and earn rewards.",
+            title: "Welcome to BuildBoard!",
+            content: "Track your coding hours, manage projects, and get your projects out there!",
             level: "primary",
-            cta: { text: "Learn More", url: "https://hackclub.com" }
+            cta: { text: "Learn More About Hack Club", url: "https://hackclub.com" }
         }
     ];
 
@@ -129,7 +129,7 @@
                     {#each recentProjects as project}
                         <a href="/projects/{project.project_id}" class="project-item">
                             <div class="project-icon">
-                                🚀
+                                
                             </div>
                             <div class="project-details">
                                 <h3>{project.project_name}</h3>
