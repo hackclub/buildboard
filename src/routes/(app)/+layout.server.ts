@@ -65,6 +65,11 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         user = await userDataResponse.json();
     }
 
+    // Block access to app routes if onboarding is not complete
+    if (!user?.onboarding_completed_at) {
+        throw redirect(303, '/onboarding');
+    }
+
     // Setup status for task checklist (not blocking - just informational)
     const setupStatus = {
         hasHackatime: !!user?.hackatime_completed_at || cookies.get('hackatimeAcknowledged') === 'true',

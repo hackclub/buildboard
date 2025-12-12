@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         maxAge: 60 * 10 // 10 minutes
     });
 
-    const returnTo = url.searchParams.get('returnTo') || '/home';
+    const returnTo = url.searchParams.get('returnTo') || '/onboarding';
     cookies.set('idv_return_to', returnTo, {
         path: '/',
         httpOnly: true,
