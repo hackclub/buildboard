@@ -372,10 +372,21 @@
                     <div class="form-error">{saveError}</div>
                 {/if}
                 <div class="edit-actions">
-                    <button class="btn-secondary" on:click={cancelEdit} disabled={saving}>Cancel</button>
-                    <button class="btn-primary" on:click={saveProject} disabled={saving}>
-                        {saving ? "Saving..." : "Save Changes"}
+                    <button class="delete-btn" on:click={() => showDeleteModal = true} disabled={saving}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6" />
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                        Delete
                     </button>
+                    <div class="edit-actions-right">
+                        <button class="btn-secondary" on:click={cancelEdit} disabled={saving}>Cancel</button>
+                        <button class="btn-primary" on:click={saveProject} disabled={saving}>
+                            {saving ? "Saving..." : "Save Changes"}
+                        </button>
+                    </div>
                 </div>
             </div>
         {:else}
@@ -463,19 +474,6 @@
                 {/if}
             </div>
 
-            <!-- Delete Section -->
-            <div class="action-item delete-action">
-                <button class="btn-delete" on:click={() => showDeleteModal = true}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3,6 5,6 21,6" />
-                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                    </svg>
-                    Delete Project
-                </button>
-                <p class="delete-warning">Once you delete a project, there is no going back. Please be certain.</p>
-            </div>
         </div>
     </div>
 
@@ -921,6 +919,36 @@
         border-color: var(--bb-primary);
     }
 
+    .edit-actions-right {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .delete-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.75rem;
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        border-radius: 0;
+        color: #f87171;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .delete-btn:hover:not(:disabled) {
+        background: rgba(220, 38, 38, 0.2);
+        border-color: #dc2626;
+        color: #fca5a5;
+    }
+
+    .delete-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
     .edit-btn-small {
         display: inline-flex;
         align-items: center;
@@ -1337,6 +1365,8 @@
 
     .edit-actions {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
         gap: 0.75rem;
         margin-top: 1rem;
     }
