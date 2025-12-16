@@ -460,44 +460,24 @@
                     Source Code
                 </a>
             {/if}
-        </div>
-
-        <!-- Submit Section -->
-        <div class="submit-section">
             {#if project.shipped}
                 <div class="shipped-badge">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
                         <polyline points="22,4 12,14.01 9,11.01" />
                     </svg>
-                    Project Submitted
+                    Submitted
                 </div>
             {:else if showSubmitConfirm}
-                <div class="submit-confirm">
-                    <p>Are you sure you want to submit this project for review?</p>
-                    <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
-                    {#if submitErrors.length > 0}
-                        <div class="validation-errors">
-                            <p class="error-title">Please fix the following issues:</p>
-                            <ul>
-                                {#each submitErrors as error}
-                                    <li>{error.message}</li>
-                                {/each}
-                            </ul>
-                        </div>
-                    {/if}
-                    <div class="submit-actions">
-                        <button class="btn-secondary" onclick={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
-                            Cancel
-                        </button>
-                        <button class="btn-submit" onclick={submitProject} disabled={submitting}>
-                            {submitting ? "Validating..." : "Yes, Submit"}
-                        </button>
-                    </div>
-                </div>
+                <button class="btn-secondary" onclick={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
+                    Cancel
+                </button>
+                <button class="btn-submit-inline" onclick={submitProject} disabled={submitting}>
+                    {submitting ? "Validating..." : "Confirm Submit"}
+                </button>
             {:else}
-                <button class="btn-submit" onclick={() => showSubmitConfirm = true}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="btn-submit-inline" onclick={() => showSubmitConfirm = true}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 2L11 13" />
                         <path d="M22 2L15 22L11 13L2 9L22 2Z" />
                     </svg>
@@ -505,6 +485,17 @@
                 </button>
             {/if}
         </div>
+
+        {#if showSubmitConfirm && submitErrors.length > 0}
+            <div class="validation-errors">
+                <p class="error-title">Please fix the following issues:</p>
+                <ul>
+                    {#each submitErrors as error}
+                        <li>{error.message}</li>
+                    {/each}
+                </ul>
+            </div>
+        {/if}
     </div>
 
     <!-- Submission Requirements Checklist -->
@@ -601,115 +592,6 @@
             <p class="requirements-note">You also need a complete profile to submit.</p>
         </div>
     {/if}
-
-    <!-- Hackatime Projects Card -->
-    <div class="card" id="hackatime">
-        <div class="card-header">
-            <h2>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12,6 12,12 16,14" />
-                </svg>
-                Hackatime Projects
-            </h2>
-            {#if !isEditingHackatime}
-                <button class="edit-btn-small" onclick={startEditingHackatime}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                    Edit
-                </button>
-            {/if}
-        </div>
-
-        {#if isEditingHackatime}
-            <div class="hackatime-edit">
-                <HackatimeSelector bind:selectedKeys={hackatimeKeys} />
-                {#if hackatimeError}
-                    <div class="form-error">{hackatimeError}</div>
-                {/if}
-                <div class="edit-actions">
-                    <button class="btn-secondary" onclick={cancelHackatimeEdit} disabled={savingHackatime}>Cancel</button>
-                    <button class="btn-primary" onclick={saveHackatimeProjects} disabled={savingHackatime}>
-                        {savingHackatime ? "Saving..." : "Save Hackatime Projects"}
-                    </button>
-                </div>
-            </div>
-        {:else if project.hackatime_projects && project.hackatime_projects.length > 0}
-            <div class="hackatime-list">
-                {#each project.hackatime_projects as name}
-                    <span class="hackatime-tag">{name}</span>
-                {/each}
-            </div>
-        {:else}
-            <p class="empty-hint">No Hackatime projects linked yet. Click Edit to add some.</p>
-        {/if}
-    </div>
-
-    <!-- GitHub Integration Card -->
-    <div class="card" id="github">
-        <div class="card-header">
-            <h2>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
-                </svg>
-                GitHub Integration
-            </h2>
-        </div>
-
-        {#if project.github_installation_id && project.github_repo_path}
-            <div class="linked-repo">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                    <polyline points="22,4 12,14.01 9,11.01" />
-                </svg>
-                <span>Linked to <strong>{project.github_repo_path}</strong></span>
-            </div>
-
-            <div class="readme-section">
-                <ReadmeEditor
-                    projectId={project.project_id}
-                    initialContent={readme?.content || ""}
-                    initialSha={readme?.sha || null}
-                />
-            </div>
-        {:else}
-            <div class="link-form">
-                <p class="form-hint">
-                    Link a GitHub repository to enable README editing and sync.
-                </p>
-
-                <div class="form-group">
-                    <label for="repo-input">GitHub Repository</label>
-                    <input
-                        id="repo-input"
-                        type="text"
-                        bind:value={repoInput}
-                        placeholder="owner/repo or https://github.com/owner/repo"
-                    />
-                    <p class="input-help">
-                        Paste a GitHub URL or enter owner/repo
-                    </p>
-                </div>
-
-                {#if linkError}
-                    <div class="form-error">{linkError}</div>
-                {/if}
-                {#if linkMessage}
-                    <div class="form-success">{linkMessage}</div>
-                {/if}
-
-                <button
-                    class="btn-primary"
-                    onclick={linkRepo}
-                    disabled={linking || !repoInput.trim()}
-                >
-                    {linking ? "Linking..." : "Link Repository"}
-                </button>
-            </div>
-        {/if}
-    </div>
 
     <!-- Project URLs Card -->
     <div class="card" id="urls">
@@ -846,6 +728,115 @@
             </div>
         {:else if !isEditingScreenshots}
             <p class="empty-hint">No screenshots uploaded yet. Click Add to upload one.</p>
+        {/if}
+    </div>
+
+    <!-- Hackatime Projects Card -->
+    <div class="card" id="hackatime">
+        <div class="card-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12,6 12,12 16,14" />
+                </svg>
+                Hackatime Projects
+            </h2>
+            {#if !isEditingHackatime}
+                <button class="edit-btn-small" onclick={startEditingHackatime}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                </button>
+            {/if}
+        </div>
+
+        {#if isEditingHackatime}
+            <div class="hackatime-edit">
+                <HackatimeSelector bind:selectedKeys={hackatimeKeys} />
+                {#if hackatimeError}
+                    <div class="form-error">{hackatimeError}</div>
+                {/if}
+                <div class="edit-actions">
+                    <button class="btn-secondary" onclick={cancelHackatimeEdit} disabled={savingHackatime}>Cancel</button>
+                    <button class="btn-primary" onclick={saveHackatimeProjects} disabled={savingHackatime}>
+                        {savingHackatime ? "Saving..." : "Save Hackatime Projects"}
+                    </button>
+                </div>
+            </div>
+        {:else if project.hackatime_projects && project.hackatime_projects.length > 0}
+            <div class="hackatime-list">
+                {#each project.hackatime_projects as name}
+                    <span class="hackatime-tag">{name}</span>
+                {/each}
+            </div>
+        {:else}
+            <p class="empty-hint">No Hackatime projects linked yet. Click Edit to add some.</p>
+        {/if}
+    </div>
+
+    <!-- GitHub Integration Card -->
+    <div class="card" id="github">
+        <div class="card-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
+                </svg>
+                GitHub Integration
+            </h2>
+        </div>
+
+        {#if project.github_installation_id && project.github_repo_path}
+            <div class="linked-repo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <polyline points="22,4 12,14.01 9,11.01" />
+                </svg>
+                <span>Linked to <strong>{project.github_repo_path}</strong></span>
+            </div>
+
+            <div class="readme-section">
+                <ReadmeEditor
+                    projectId={project.project_id}
+                    initialContent={readme?.content || ""}
+                    initialSha={readme?.sha || null}
+                />
+            </div>
+        {:else}
+            <div class="link-form">
+                <p class="form-hint">
+                    Link a GitHub repository to enable README editing and sync.
+                </p>
+
+                <div class="form-group">
+                    <label for="repo-input">GitHub Repository</label>
+                    <input
+                        id="repo-input"
+                        type="text"
+                        bind:value={repoInput}
+                        placeholder="owner/repo or https://github.com/owner/repo"
+                    />
+                    <p class="input-help">
+                        Paste a GitHub URL or enter owner/repo
+                    </p>
+                </div>
+
+                {#if linkError}
+                    <div class="form-error">{linkError}</div>
+                {/if}
+                {#if linkMessage}
+                    <div class="form-success">{linkMessage}</div>
+                {/if}
+
+                <button
+                    class="btn-primary"
+                    onclick={linkRepo}
+                    disabled={linking || !repoInput.trim()}
+                >
+                    {linking ? "Linking..." : "Link Repository"}
+                </button>
+            </div>
         {/if}
     </div>
 </div>
@@ -1028,40 +1019,28 @@
         color: var(--bb-text-primary);
     }
 
-    /* Submit Section */
-    .submit-section {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .btn-submit {
+    .btn-submit-inline {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
-        padding: 0.875rem 1.5rem;
+        padding: 0.5rem 1rem;
         background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
         color: #fff;
-        font-weight: 600;
-        font-size: 0.95rem;
+        font-weight: 500;
+        font-size: 0.9rem;
         border: none;
         border-radius: 0;
         cursor: pointer;
         transition: all 0.2s;
-        box-shadow: 
-            0 2px 8px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        text-decoration: none;
     }
 
-    .btn-submit:hover:not(:disabled) {
+    .btn-submit-inline:hover:not(:disabled) {
         transform: translateY(-1px);
-        box-shadow: 
-            0 4px 12px rgba(34, 197, 94, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
 
-    .btn-submit:disabled {
+    .btn-submit-inline:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
@@ -1288,25 +1267,6 @@
         color: #fff;
     }
 
-    .submit-confirm {
-        padding: 1rem;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--bb-accent-dark);
-        border-radius: 0;
-    }
-
-    .submit-confirm p {
-        margin: 0 0 1rem;
-        font-size: 0.9rem;
-        color: var(--bb-text-secondary);
-    }
-
-    .submit-requirements {
-        font-size: 0.8rem !important;
-        color: var(--bb-text-muted) !important;
-        font-style: italic;
-    }
-
     .validation-errors {
         padding: 1rem;
         background: rgba(127, 29, 29, 0.2);
@@ -1335,11 +1295,6 @@
 
     .validation-errors li:last-child {
         margin-bottom: 0;
-    }
-
-    .submit-actions {
-        display: flex;
-        gap: 0.75rem;
     }
 
     /* Edit Form */
