@@ -127,6 +127,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
             }
 
             user = await createUserResponse.json();
+            console.log('New user created with ID:', user);
 
             if (slackId) {
                 await fetch(getBackendUrl(`/users/${user.user_id}/roles/slack_member`), {
