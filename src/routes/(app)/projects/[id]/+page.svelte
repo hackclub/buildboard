@@ -13,6 +13,41 @@
     let saving = false;
     let saveError = "";
 
+    let submitting = false;
+    let submitErrors: Array<{ field: string; message: string }> = [];
+    let showSubmitConfirm = false;
+
+    async function submitProject() {
+        submitting = true;
+        submitErrors = [];
+
+        try {
+            const res = await fetch(`/api/projects/${project.project_id}/submit`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to submit");
+            }
+
+            const result = await res.json();
+            
+            if (!result.success) {
+                submitErrors = result.errors || [];
+                return;
+            }
+
+            project = { ...project, shipped: result.shipped };
+            showSubmitConfirm = false;
+        } catch (e: any) {
+            submitErrors = [{ field: "general", message: e.message }];
+        } finally {
+            submitting = false;
+        }
+    }
+
     let isEditingHackatime = false;
     let hackatimeKeys: string[] = project.hackatime_projects || [];
     let savingHackatime = false;
@@ -33,10 +68,122 @@
     
     $: safeLiveUrl = getSafeUrl(project.live_url);
     $: safeCodeUrl = getSafeUrl(project.code_url);
+
+    $: hasGithub = !!(project.code_url || project.github_repo_path);
+    $: hasLiveUrl = !!project.live_url;
+    $: hasScreenshot = !!(project.attachment_urls && project.attachment_urls.length > 0);
+    $: hasHackatime = !!(project.hackatime_projects && project.hackatime_projects.length > 0);
+    $: requirementsMet = hasGithub && hasLiveUrl && hasScreenshot && hasHackatime;
+
     let linking = false;
     let repoInput = "";
     let linkMessage = "";
     let linkError = "";
+
+    let isEditingUrls = false;
+    let editLiveUrl = project.live_url || "";
+    let editCodeUrl = project.code_url || "";
+    let savingUrls = false;
+    let urlError = "";
+
+    async function saveUrls() {
+        savingUrls = true;
+        urlError = "";
+
+        try {
+            const res = await fetch(`/api/projects/${project.project_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    live_url: editLiveUrl.trim() || null,
+                    code_url: editCodeUrl.trim() || null
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to save");
+            }
+
+            const updated = await res.json();
+            project = { ...project, ...updated };
+            isEditingUrls = false;
+        } catch (e: any) {
+            urlError = e.message;
+        } finally {
+            savingUrls = false;
+        }
+    }
+
+    function cancelUrlEdit() {
+        editLiveUrl = project.live_url || "";
+        editCodeUrl = project.code_url || "";
+        urlError = "";
+        isEditingUrls = false;
+    }
+
+    let isEditingScreenshots = false;
+    let screenshotUrl = "";
+    let savingScreenshot = false;
+    let screenshotError = "";
+
+    async function addScreenshot() {
+        if (!screenshotUrl.trim()) {
+            screenshotError = "Please enter a screenshot URL";
+            return;
+        }
+
+        savingScreenshot = true;
+        screenshotError = "";
+
+        try {
+            const currentUrls = project.attachment_urls || [];
+            const res = await fetch(`/api/projects/${project.project_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    attachment_urls: [...currentUrls, screenshotUrl.trim()]
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to save");
+            }
+
+            const updated = await res.json();
+            project = { ...project, ...updated };
+            screenshotUrl = "";
+            isEditingScreenshots = false;
+        } catch (e: any) {
+            screenshotError = e.message;
+        } finally {
+            savingScreenshot = false;
+        }
+    }
+
+    async function removeScreenshot(url: string) {
+        try {
+            const currentUrls = project.attachment_urls || [];
+            const res = await fetch(`/api/projects/${project.project_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    attachment_urls: currentUrls.filter((u: string) => u !== url)
+                })
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to remove");
+            }
+
+            const updated = await res.json();
+            project = { ...project, ...updated };
+        } catch (e: any) {
+            screenshotError = e.message;
+        }
+    }
 
     function formatTime(minutes: number): string {
         const hours = Math.floor(minutes / 60);
@@ -261,7 +408,146 @@
                 </a>
             {/if}
         </div>
+
+        <!-- Submit Section -->
+        <div class="submit-section">
+            {#if project.shipped}
+                <div class="shipped-badge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                        <polyline points="22,4 12,14.01 9,11.01" />
+                    </svg>
+                    Project Submitted
+                </div>
+            {:else if showSubmitConfirm}
+                <div class="submit-confirm">
+                    <p>Are you sure you want to submit this project for review?</p>
+                    <p class="submit-requirements">Requirements: Under 19, complete profile with birthday, shipping address, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
+                    {#if submitErrors.length > 0}
+                        <div class="validation-errors">
+                            <p class="error-title">Please fix the following issues:</p>
+                            <ul>
+                                {#each submitErrors as error}
+                                    <li>{error.message}</li>
+                                {/each}
+                            </ul>
+                        </div>
+                    {/if}
+                    <div class="submit-actions">
+                        <button class="btn-secondary" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
+                            Cancel
+                        </button>
+                        <button class="btn-submit" on:click={submitProject} disabled={submitting}>
+                            {submitting ? "Validating..." : "Yes, Submit"}
+                        </button>
+                    </div>
+                </div>
+            {:else}
+                <button class="btn-submit" on:click={() => showSubmitConfirm = true}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                    </svg>
+                    Submit Project
+                </button>
+            {/if}
+        </div>
     </div>
+
+    <!-- Submission Requirements Checklist -->
+    {#if !project.shipped}
+        <div class="card requirements-card">
+            <div class="card-header">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4" />
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                    </svg>
+                    Submission Requirements
+                </h2>
+                {#if requirementsMet}
+                    <span class="requirements-ready">Ready to submit!</span>
+                {/if}
+            </div>
+            
+            <ul class="requirements-list">
+                <li class:completed={hasGithub}>
+                    <span class="check-icon">
+                        {#if hasGithub}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22,4 12,14.01 9,11.01" />
+                            </svg>
+                        {:else}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                            </svg>
+                        {/if}
+                    </span>
+                    <span class="req-text">GitHub repository URL</span>
+                    {#if !hasGithub}
+                        <span class="req-action">Link below</span>
+                    {/if}
+                </li>
+                <li class:completed={hasLiveUrl}>
+                    <span class="check-icon">
+                        {#if hasLiveUrl}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22,4 12,14.01 9,11.01" />
+                            </svg>
+                        {:else}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                            </svg>
+                        {/if}
+                    </span>
+                    <span class="req-text">Live/playable project URL</span>
+                    {#if !hasLiveUrl}
+                        <a href="#urls" class="req-action">Add URL</a>
+                    {/if}
+                </li>
+                <li class:completed={hasScreenshot}>
+                    <span class="check-icon">
+                        {#if hasScreenshot}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22,4 12,14.01 9,11.01" />
+                            </svg>
+                        {:else}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                            </svg>
+                        {/if}
+                    </span>
+                    <span class="req-text">At least one screenshot</span>
+                    {#if !hasScreenshot}
+                        <a href="#screenshots" class="req-action">Upload</a>
+                    {/if}
+                </li>
+                <li class:completed={hasHackatime}>
+                    <span class="check-icon">
+                        {#if hasHackatime}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                <polyline points="22,4 12,14.01 9,11.01" />
+                            </svg>
+                        {:else}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                            </svg>
+                        {/if}
+                    </span>
+                    <span class="req-text">Linked Hackatime project</span>
+                    {#if !hasHackatime}
+                        <a href="#hackatime" class="req-action">Link project</a>
+                    {/if}
+                </li>
+            </ul>
+            
+            <p class="requirements-note">You also need a complete profile, address, and be under 19 to submit.</p>
+        </div>
+    {/if}
 
     <!-- Hackatime Projects Card -->
     <div class="card" id="hackatime">
@@ -369,6 +655,142 @@
                     {linking ? "Linking..." : "Link Repository"}
                 </button>
             </div>
+        {/if}
+    </div>
+
+    <!-- Project URLs Card -->
+    <div class="card" id="urls">
+        <div class="card-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                </svg>
+                Project URLs
+            </h2>
+            {#if !isEditingUrls}
+                <button class="edit-btn-small" on:click={() => isEditingUrls = true}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                </button>
+            {/if}
+        </div>
+
+        {#if isEditingUrls}
+            <div class="urls-edit">
+                <div class="form-group">
+                    <label for="edit-live-url">Live/Playable URL <span class="required-tag">Required</span></label>
+                    <input
+                        id="edit-live-url"
+                        type="url"
+                        bind:value={editLiveUrl}
+                        placeholder="https://your-project.com"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="edit-code-url">Source Code URL</label>
+                    <input
+                        id="edit-code-url"
+                        type="url"
+                        bind:value={editCodeUrl}
+                        placeholder="https://github.com/you/project"
+                    />
+                </div>
+                {#if urlError}
+                    <div class="form-error">{urlError}</div>
+                {/if}
+                <div class="edit-actions">
+                    <button class="btn-secondary" on:click={cancelUrlEdit} disabled={savingUrls}>Cancel</button>
+                    <button class="btn-primary" on:click={saveUrls} disabled={savingUrls}>
+                        {savingUrls ? "Saving..." : "Save URLs"}
+                    </button>
+                </div>
+            </div>
+        {:else}
+            <div class="urls-display">
+                <div class="url-row">
+                    <span class="url-label">Live URL:</span>
+                    {#if project.live_url}
+                        <a href={project.live_url} target="_blank" rel="noopener noreferrer" class="url-value">{project.live_url}</a>
+                    {:else}
+                        <span class="url-missing">Not set <span class="required-tag">Required</span></span>
+                    {/if}
+                </div>
+                <div class="url-row">
+                    <span class="url-label">Code URL:</span>
+                    {#if project.code_url}
+                        <a href={project.code_url} target="_blank" rel="noopener noreferrer" class="url-value">{project.code_url}</a>
+                    {:else}
+                        <span class="url-missing">Not set</span>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+    </div>
+
+    <!-- Screenshots Card -->
+    <div class="card" id="screenshots">
+        <div class="card-header">
+            <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21,15 16,10 5,21" />
+                </svg>
+                Screenshots <span class="required-tag">Required</span>
+            </h2>
+            <button class="edit-btn-small" on:click={() => isEditingScreenshots = !isEditingScreenshots}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add
+            </button>
+        </div>
+
+        {#if isEditingScreenshots}
+            <div class="screenshot-add">
+                <div class="form-group">
+                    <label for="screenshot-url">Screenshot URL</label>
+                    <input
+                        id="screenshot-url"
+                        type="url"
+                        bind:value={screenshotUrl}
+                        placeholder="https://example.com/screenshot.png"
+                    />
+                    <p class="input-help">Upload your image to an image host and paste the URL here</p>
+                </div>
+                {#if screenshotError}
+                    <div class="form-error">{screenshotError}</div>
+                {/if}
+                <div class="edit-actions">
+                    <button class="btn-secondary" on:click={() => { isEditingScreenshots = false; screenshotUrl = ""; screenshotError = ""; }} disabled={savingScreenshot}>Cancel</button>
+                    <button class="btn-primary" on:click={addScreenshot} disabled={savingScreenshot || !screenshotUrl.trim()}>
+                        {savingScreenshot ? "Adding..." : "Add Screenshot"}
+                    </button>
+                </div>
+            </div>
+        {/if}
+
+        {#if project.attachment_urls && project.attachment_urls.length > 0}
+            <div class="screenshots-grid">
+                {#each project.attachment_urls as url}
+                    <div class="screenshot-item">
+                        <img src={url} alt="Project screenshot" />
+                        <button class="screenshot-remove" on:click={() => removeScreenshot(url)} title="Remove screenshot">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                {/each}
+            </div>
+        {:else if !isEditingScreenshots}
+            <p class="empty-hint">No screenshots uploaded yet. Click Add to upload one.</p>
         {/if}
     </div>
 </div>
@@ -549,6 +971,291 @@
         background: rgba(255, 255, 255, 0.1);
         border-color: var(--bb-primary);
         color: var(--bb-text-primary);
+    }
+
+    /* Submit Section */
+    .submit-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 
+            0 2px 8px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 
+            0 4px 12px rgba(34, 197, 94, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .shipped-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: rgba(34, 84, 61, 0.3);
+        border: 1px solid rgba(34, 197, 94, 0.5);
+        border-radius: 0;
+        color: #86efac;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .shipped-badge svg {
+        color: #22c55e;
+    }
+
+    /* Requirements Card */
+    .requirements-card {
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .requirements-ready {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #22c55e;
+        background: rgba(34, 197, 94, 0.15);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0;
+    }
+
+    .requirements-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .requirements-list li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        color: var(--bb-text-muted);
+    }
+
+    .requirements-list li:last-child {
+        border-bottom: none;
+    }
+
+    .requirements-list li.completed {
+        color: var(--bb-text-secondary);
+    }
+
+    .requirements-list li.completed .check-icon {
+        color: #22c55e;
+    }
+
+    .check-icon {
+        display: flex;
+        align-items: center;
+        color: var(--bb-text-muted);
+    }
+
+    .req-text {
+        flex: 1;
+        font-size: 0.9rem;
+    }
+
+    .req-action {
+        font-size: 0.8rem;
+        color: #60a5fa;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .req-action:hover {
+        text-decoration: underline;
+    }
+
+    .requirements-note {
+        margin: 1rem 0 0;
+        font-size: 0.8rem;
+        color: var(--bb-text-muted);
+        font-style: italic;
+    }
+
+    /* Required Tag */
+    .required-tag {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #f97316;
+        background: rgba(249, 115, 22, 0.15);
+        padding: 0.15rem 0.4rem;
+        border-radius: 0;
+        margin-left: 0.5rem;
+    }
+
+    /* URLs Card */
+    .urls-edit {
+        padding-top: 0.5rem;
+    }
+
+    .urls-display {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .url-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .url-label {
+        font-size: 0.85rem;
+        color: var(--bb-text-muted);
+        min-width: 80px;
+    }
+
+    .url-value {
+        font-size: 0.85rem;
+        color: #60a5fa;
+        word-break: break-all;
+        text-decoration: none;
+    }
+
+    .url-value:hover {
+        text-decoration: underline;
+    }
+
+    .url-missing {
+        font-size: 0.85rem;
+        color: var(--bb-text-muted);
+        font-style: italic;
+    }
+
+    /* Screenshots Card */
+    .screenshot-add {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .screenshots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .screenshot-item {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        border-radius: 0;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--bb-accent-dark);
+    }
+
+    .screenshot-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .screenshot-remove {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        border: none;
+        border-radius: 0;
+        color: #fca5a5;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .screenshot-item:hover .screenshot-remove {
+        opacity: 1;
+    }
+
+    .screenshot-remove:hover {
+        background: rgba(185, 28, 28, 0.8);
+        color: #fff;
+    }
+
+    .submit-confirm {
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--bb-accent-dark);
+        border-radius: 0;
+    }
+
+    .submit-confirm p {
+        margin: 0 0 1rem;
+        font-size: 0.9rem;
+        color: var(--bb-text-secondary);
+    }
+
+    .submit-requirements {
+        font-size: 0.8rem !important;
+        color: var(--bb-text-muted) !important;
+        font-style: italic;
+    }
+
+    .validation-errors {
+        padding: 1rem;
+        background: rgba(127, 29, 29, 0.2);
+        border: 1px solid rgba(185, 28, 28, 0.5);
+        border-radius: 0;
+        margin-bottom: 1rem;
+    }
+
+    .validation-errors .error-title {
+        margin: 0 0 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fca5a5;
+    }
+
+    .validation-errors ul {
+        margin: 0;
+        padding-left: 1.25rem;
+    }
+
+    .validation-errors li {
+        font-size: 0.85rem;
+        color: #fca5a5;
+        margin-bottom: 0.25rem;
+    }
+
+    .validation-errors li:last-child {
+        margin-bottom: 0;
+    }
+
+    .submit-actions {
+        display: flex;
+        gap: 0.75rem;
     }
 
     /* Edit Form */

@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { BEARER_TOKEN_BACKEND, ENCRYPTION_KEY } from '$env/static/private';
 import { getBackendUrl } from '$lib/server/auth';
 import { createDecipheriv } from 'crypto';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 
 function unhashUserID(hashedUserID: string): string {
     const parts = hashedUserID.split(':');
@@ -132,6 +132,11 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
         }
 
         const user = await userResponse.json();
+
+        // If user has completed onboarding, redirect to /home
+        if (user.onboarding_completed_at) {
+            throw redirect(303, '/home');
+        }
         
         if (!user.slack_id) {
             return { projects: null };

@@ -188,7 +188,7 @@
             await updateUser();
         }
         
-        goto("/home");
+        goto("/");
     }
 
     function skipToTerms() {
