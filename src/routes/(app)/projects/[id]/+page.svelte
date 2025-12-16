@@ -10,7 +10,7 @@
     let { data }: Props = $props();
 
     let project = $state(data.project);
-    let readme = data.readme;
+    let readme = $state(data.readme);
 
     let isEditing = $state(false);
     let editName = $state("");
