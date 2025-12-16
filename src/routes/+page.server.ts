@@ -95,9 +95,8 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
         utmFromUrl && utmFromUrl.trim().length > 0
             ? utmFromUrl.trim()
             : 'non referred';
-
     try {
-        await fetch(getBackendUrl('/utms'), {
+        const response = await fetch(getBackendUrl('/utms'), {
             method: 'POST',
             headers: {
                 'Authorization': `${BEARER_TOKEN_BACKEND}`,
@@ -105,6 +104,9 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
             },
             body: JSON.stringify({ utm_source })
         });
+        console.log('UTM POST response:', response.status, await response.text());
+        console.log(`Sent UTM data: ${utm_source}`);
+        console.log( JSON.stringify({ utm_source}));
     } catch (error) {
         console.error('Error sending UTM data:', error);
     }

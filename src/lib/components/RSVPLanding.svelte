@@ -152,6 +152,12 @@
         pointer-events: none;
     }
 
+    @media (max-width: 640px) {
+        .hero-bg {
+            object-position: 70% center;
+        }
+    }
+
     .signup-wrapper {
         position: absolute;
         bottom: 10rem;
@@ -167,9 +173,11 @@
     @media (max-width: 640px) {
         .signup-wrapper {
             bottom: 1rem;
-            left: 1rem;
-            right: 1rem;
-            max-width: none;
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            width: calc(100% - 2rem);
+            max-width: 24rem;
         }
     }
 
@@ -194,6 +202,8 @@
         .app-button {
             font-size: 1rem;
             padding: 0.5rem 1.5rem;
+            width: 100%;
+            text-align: center;
         }
     }
 </style>
