@@ -149,7 +149,7 @@ class IdentityVaultService {
         params.set('client_id', PUBLIC_HC_OAUTH_CLIENT_ID);
         params.set('redirect_uri', redirectUri);
         params.set('response_type', 'code');
-        params.set('scope', 'openid profile email slack_id');
+        params.set('scope', 'openid profile email slack_id verification_status addresses basic_info');
         
         if (state) {
             params.set('state', state);
@@ -190,6 +190,9 @@ class IdentityVaultService {
                 throw new Error(`Token exchange failed: ${response.status}`);
             }
 
+            const tokenData = await response.json();
+            console.log('Token::', tokenData);
+            
             return response.json();
         });
     }
