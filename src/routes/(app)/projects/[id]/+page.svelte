@@ -3,19 +3,30 @@
     import ReadmeEditor from "$lib/components/ReadmeEditor.svelte";
     import HackatimeSelector from "$lib/components/HackatimeSelector.svelte";
 
-    export let data: PageData;
+    interface Props {
+        data: PageData;
+    }
 
-    let { project, readme } = data;
+    let { data }: Props = $props();
 
-    let isEditing = false;
-    let editName = project.project_name;
-    let editDescription = project.project_description || "";
-    let saving = false;
-    let saveError = "";
+    let project = $state(data.project);
+    let readme = data.readme;
 
-    let submitting = false;
-    let submitErrors: Array<{ field: string; message: string }> = [];
-    let showSubmitConfirm = false;
+    let isEditing = $state(false);
+    let editName = $state("");
+    let editDescription = $state("");
+    let saving = $state(false);
+    let saveError = $state("");
+
+    function startEditing() {
+        editName = project.project_name;
+        editDescription = project.project_description || "";
+        isEditing = true;
+    }
+
+    let submitting = $state(false);
+    let submitErrors = $state<Array<{ field: string; message: string }>>([]);
+    let showSubmitConfirm = $state(false);
 
     async function submitProject() {
         submitting = true;
@@ -48,10 +59,15 @@
         }
     }
 
-    let isEditingHackatime = false;
-    let hackatimeKeys: string[] = project.hackatime_projects || [];
-    let savingHackatime = false;
-    let hackatimeError = "";
+    let isEditingHackatime = $state(false);
+    let hackatimeKeys = $state<string[]>([]);
+    let savingHackatime = $state(false);
+    let hackatimeError = $state("");
+
+    function startEditingHackatime() {
+        hackatimeKeys = project.hackatime_projects || [];
+        isEditingHackatime = true;
+    }
     
     function getSafeUrl(url: string | null | undefined): string | null {
         if (!url) return null;
@@ -66,25 +82,31 @@
         }
     }
     
-    $: safeLiveUrl = getSafeUrl(project.live_url);
-    $: safeCodeUrl = getSafeUrl(project.code_url);
+    let safeLiveUrl = $derived(getSafeUrl(project.live_url));
+    let safeCodeUrl = $derived(getSafeUrl(project.code_url));
 
-    $: hasGithub = !!(project.code_url || project.github_repo_path);
-    $: hasLiveUrl = !!project.live_url;
-    $: hasScreenshot = !!(project.attachment_urls && project.attachment_urls.length > 0);
-    $: hasHackatime = !!(project.hackatime_projects && project.hackatime_projects.length > 0);
-    $: requirementsMet = hasGithub && hasLiveUrl && hasScreenshot && hasHackatime;
+    let hasGithub = $derived(!!(project.code_url || project.github_repo_path));
+    let hasLiveUrl = $derived(!!project.live_url);
+    let hasScreenshot = $derived(!!(project.attachment_urls && project.attachment_urls.length > 0));
+    let hasHackatime = $derived(!!(project.hackatime_projects && project.hackatime_projects.length > 0));
+    let requirementsMet = $derived(hasGithub && hasLiveUrl && hasScreenshot && hasHackatime);
 
-    let linking = false;
-    let repoInput = "";
-    let linkMessage = "";
-    let linkError = "";
+    let linking = $state(false);
+    let repoInput = $state("");
+    let linkMessage = $state("");
+    let linkError = $state("");
 
-    let isEditingUrls = false;
-    let editLiveUrl = project.live_url || "";
-    let editCodeUrl = project.code_url || "";
-    let savingUrls = false;
-    let urlError = "";
+    let isEditingUrls = $state(false);
+    let editLiveUrl = $state("");
+    let editCodeUrl = $state("");
+    let savingUrls = $state(false);
+    let urlError = $state("");
+
+    function startEditingUrls() {
+        editLiveUrl = project.live_url || "";
+        editCodeUrl = project.code_url || "";
+        isEditingUrls = true;
+    }
 
     async function saveUrls() {
         savingUrls = true;
@@ -122,14 +144,42 @@
         isEditingUrls = false;
     }
 
-    let isEditingScreenshots = false;
-    let screenshotUrl = "";
-    let savingScreenshot = false;
-    let screenshotError = "";
+    let isEditingScreenshots = $state(false);
+    let savingScreenshot = $state(false);
+    let screenshotError = $state("");
 
-    async function addScreenshot() {
-        if (!screenshotUrl.trim()) {
-            screenshotError = "Please enter a screenshot URL";
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    function fileToBase64(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handleFileSelect(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const files = input.files;
+        if (!files || files.length === 0) return;
+
+        // Check file types
+        const invalidTypeFiles = Array.from(files).filter(f => !ALLOWED_TYPES.includes(f.type));
+        if (invalidTypeFiles.length > 0) {
+            const fileNames = invalidTypeFiles.map(f => f.name).join(", ");
+            screenshotError = `Invalid file type: ${fileNames}. Only JPG, PNG, GIF, and WebP are allowed.`;
+            input.value = "";
+            return;
+        }
+
+        // Check file sizes
+        const oversizedFiles = Array.from(files).filter(f => f.size > MAX_FILE_SIZE);
+        if (oversizedFiles.length > 0) {
+            const fileNames = oversizedFiles.map(f => f.name).join(", ");
+            screenshotError = `The following files exceed the 2MB limit: ${fileNames}`;
+            input.value = "";
             return;
         }
 
@@ -137,12 +187,15 @@
         screenshotError = "";
 
         try {
+            const base64Promises = Array.from(files).map(fileToBase64);
+            const base64Strings = await Promise.all(base64Promises);
+            
             const currentUrls = project.attachment_urls || [];
             const res = await fetch(`/api/projects/${project.project_id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    attachment_urls: [...currentUrls, screenshotUrl.trim()]
+                    attachment_urls: [...currentUrls, ...base64Strings]
                 })
             });
 
@@ -153,8 +206,8 @@
 
             const updated = await res.json();
             project = { ...project, ...updated };
-            screenshotUrl = "";
             isEditingScreenshots = false;
+            input.value = "";
         } catch (e: any) {
             screenshotError = e.message;
         } finally {
@@ -329,7 +382,7 @@
         <div class="card-top-row">
             <div class="project-badge">Week {project.submission_week}</div>
             {#if !isEditing}
-                <button class="edit-btn" on:click={() => isEditing = true}>
+                <button class="edit-btn" onclick={startEditing}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -364,8 +417,8 @@
                     <div class="form-error">{saveError}</div>
                 {/if}
                 <div class="edit-actions">
-                    <button class="btn-secondary" on:click={cancelEdit} disabled={saving}>Cancel</button>
-                    <button class="btn-primary" on:click={saveProject} disabled={saving}>
+                    <button class="btn-secondary" onclick={cancelEdit} disabled={saving}>Cancel</button>
+                    <button class="btn-primary" onclick={saveProject} disabled={saving}>
                         {saving ? "Saving..." : "Save Changes"}
                     </button>
                 </div>
@@ -434,16 +487,16 @@
                         </div>
                     {/if}
                     <div class="submit-actions">
-                        <button class="btn-secondary" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
+                        <button class="btn-secondary" onclick={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
                             Cancel
                         </button>
-                        <button class="btn-submit" on:click={submitProject} disabled={submitting}>
+                        <button class="btn-submit" onclick={submitProject} disabled={submitting}>
                             {submitting ? "Validating..." : "Yes, Submit"}
                         </button>
                     </div>
                 </div>
             {:else}
-                <button class="btn-submit" on:click={() => showSubmitConfirm = true}>
+                <button class="btn-submit" onclick={() => showSubmitConfirm = true}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 2L11 13" />
                         <path d="M22 2L15 22L11 13L2 9L22 2Z" />
@@ -560,7 +613,7 @@
                 Hackatime Projects
             </h2>
             {#if !isEditingHackatime}
-                <button class="edit-btn-small" on:click={() => isEditingHackatime = true}>
+                <button class="edit-btn-small" onclick={startEditingHackatime}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -577,8 +630,8 @@
                     <div class="form-error">{hackatimeError}</div>
                 {/if}
                 <div class="edit-actions">
-                    <button class="btn-secondary" on:click={cancelHackatimeEdit} disabled={savingHackatime}>Cancel</button>
-                    <button class="btn-primary" on:click={saveHackatimeProjects} disabled={savingHackatime}>
+                    <button class="btn-secondary" onclick={cancelHackatimeEdit} disabled={savingHackatime}>Cancel</button>
+                    <button class="btn-primary" onclick={saveHackatimeProjects} disabled={savingHackatime}>
                         {savingHackatime ? "Saving..." : "Save Hackatime Projects"}
                     </button>
                 </div>
@@ -649,7 +702,7 @@
 
                 <button
                     class="btn-primary"
-                    on:click={linkRepo}
+                    onclick={linkRepo}
                     disabled={linking || !repoInput.trim()}
                 >
                     {linking ? "Linking..." : "Link Repository"}
@@ -669,7 +722,7 @@
                 Project URLs
             </h2>
             {#if !isEditingUrls}
-                <button class="edit-btn-small" on:click={() => isEditingUrls = true}>
+                <button class="edit-btn-small" onclick={startEditingUrls}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -703,8 +756,8 @@
                     <div class="form-error">{urlError}</div>
                 {/if}
                 <div class="edit-actions">
-                    <button class="btn-secondary" on:click={cancelUrlEdit} disabled={savingUrls}>Cancel</button>
-                    <button class="btn-primary" on:click={saveUrls} disabled={savingUrls}>
+                    <button class="btn-secondary" onclick={cancelUrlEdit} disabled={savingUrls}>Cancel</button>
+                    <button class="btn-primary" onclick={saveUrls} disabled={savingUrls}>
                         {savingUrls ? "Saving..." : "Save URLs"}
                     </button>
                 </div>
@@ -742,7 +795,7 @@
                 </svg>
                 Screenshots <span class="required-tag">Required</span>
             </h2>
-            <button class="edit-btn-small" on:click={() => isEditingScreenshots = !isEditingScreenshots}>
+            <button class="edit-btn-small" onclick={() => isEditingScreenshots = !isEditingScreenshots}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -754,23 +807,25 @@
         {#if isEditingScreenshots}
             <div class="screenshot-add">
                 <div class="form-group">
-                    <label for="screenshot-url">Screenshot URL</label>
+                    <label for="screenshot-file">Upload Screenshot</label>
                     <input
-                        id="screenshot-url"
-                        type="url"
-                        bind:value={screenshotUrl}
-                        placeholder="https://example.com/screenshot.png"
+                        id="screenshot-file"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp"
+                        multiple
+                        onchange={handleFileSelect}
+                        class="file-input"
                     />
-                    <p class="input-help">Upload your image to an image host and paste the URL here</p>
+                    <p class="input-help">Select one or more image files to upload (max 2MB per image)</p>
                 </div>
                 {#if screenshotError}
                     <div class="form-error">{screenshotError}</div>
                 {/if}
+                {#if savingScreenshot}
+                    <p class="upload-status">Uploading...</p>
+                {/if}
                 <div class="edit-actions">
-                    <button class="btn-secondary" on:click={() => { isEditingScreenshots = false; screenshotUrl = ""; screenshotError = ""; }} disabled={savingScreenshot}>Cancel</button>
-                    <button class="btn-primary" on:click={addScreenshot} disabled={savingScreenshot || !screenshotUrl.trim()}>
-                        {savingScreenshot ? "Adding..." : "Add Screenshot"}
-                    </button>
+                    <button class="btn-secondary" onclick={() => { isEditingScreenshots = false; screenshotError = ""; }} disabled={savingScreenshot}>Cancel</button>
                 </div>
             </div>
         {/if}
@@ -780,7 +835,7 @@
                 {#each project.attachment_urls as url}
                     <div class="screenshot-item">
                         <img src={url} alt="Project screenshot" />
-                        <button class="screenshot-remove" on:click={() => removeScreenshot(url)} title="Remove screenshot">
+                        <button class="screenshot-remove" onclick={() => removeScreenshot(url)} title="Remove screenshot">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="18" y1="6" x2="6" y2="18" />
                                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -1154,6 +1209,35 @@
         margin-bottom: 1rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .file-input {
+        width: 100%;
+        padding: 0.65rem 0.875rem;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--bb-accent-dark);
+        border-radius: 0;
+        color: var(--bb-text-primary);
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .file-input::file-selector-button {
+        padding: 0.5rem 1rem;
+        margin-right: 1rem;
+        background: linear-gradient(180deg, var(--bb-primary) 0%, var(--bb-primary-dark) 100%);
+        color: var(--bb-bg-dark);
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: 0;
+        cursor: pointer;
+    }
+
+    .upload-status {
+        font-size: 0.9rem;
+        color: var(--bb-primary);
+        margin: 0.5rem 0;
     }
 
     .screenshots-grid {
