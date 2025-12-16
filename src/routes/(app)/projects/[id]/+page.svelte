@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
     import type { PageData } from "./$types";
     import ReadmeEditor from "$lib/components/ReadmeEditor.svelte";
     import HackatimeSelector from "$lib/components/HackatimeSelector.svelte";
+    import DeleteProjectModal from "$lib/components/DeleteProjectModal.svelte";
 
     export let data: PageData;
 
@@ -79,6 +81,12 @@
     let repoInput = "";
     let linkMessage = "";
     let linkError = "";
+
+    let showDeleteModal = false;
+    
+    function handleProjectDeleted() {
+        goto('/projects');
+    }
 
     let isEditingUrls = false;
     let editLiveUrl = project.live_url || "";
@@ -409,48 +417,65 @@
             {/if}
         </div>
 
-        <!-- Submit Section -->
-        <div class="submit-section">
-            {#if project.shipped}
-                <div class="shipped-badge">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                        <polyline points="22,4 12,14.01 9,11.01" />
-                    </svg>
-                    Project Submitted
-                </div>
-            {:else if showSubmitConfirm}
-                <div class="submit-confirm">
-                    <p>Are you sure you want to submit this project for review?</p>
-                    <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
-                    {#if submitErrors.length > 0}
-                        <div class="validation-errors">
-                            <p class="error-title">Please fix the following issues:</p>
-                            <ul>
-                                {#each submitErrors as error}
-                                    <li>{error.message}</li>
-                                {/each}
-                            </ul>
-                        </div>
-                    {/if}
-                    <div class="submit-actions">
-                        <button class="btn-secondary" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
-                            Cancel
-                        </button>
-                        <button class="btn-submit" on:click={submitProject} disabled={submitting}>
-                            {submitting ? "Validating..." : "Yes, Submit"}
-                        </button>
+        <!-- Action Buttons Section -->
+        <div class="action-buttons-section">
+            <!-- Submit Section -->
+            <div class="action-item">
+                {#if project.shipped}
+                    <div class="shipped-badge">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                            <polyline points="22,4 12,14.01 9,11.01" />
+                        </svg>
+                        Project Submitted
                     </div>
-                </div>
-            {:else}
-                <button class="btn-submit" on:click={() => showSubmitConfirm = true}>
+                {:else if showSubmitConfirm}
+                    <div class="submit-confirm">
+                        <p>Are you sure you want to submit this project for review?</p>
+                        <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
+                        {#if submitErrors.length > 0}
+                            <div class="validation-errors">
+                                <p class="error-title">Please fix the following issues:</p>
+                                <ul>
+                                    {#each submitErrors as error}
+                                        <li>{error.message}</li>
+                                    {/each}
+                                </ul>
+                            </div>
+                        {/if}
+                        <div class="submit-actions">
+                            <button class="btn-secondary" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
+                                Cancel
+                            </button>
+                            <button class="btn-submit" on:click={submitProject} disabled={submitting}>
+                                {submitting ? "Validating..." : "Yes, Submit"}
+                            </button>
+                        </div>
+                    </div>
+                {:else}
+                    <button class="btn-submit" on:click={() => showSubmitConfirm = true}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13" />
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                        </svg>
+                        Submit Project
+                    </button>
+                {/if}
+            </div>
+
+            <!-- Delete Section -->
+            <div class="action-item delete-action">
+                <button class="btn-delete" on:click={() => showDeleteModal = true}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13" />
-                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                        <polyline points="3,6 5,6 21,6" />
+                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
                     </svg>
-                    Submit Project
+                    Delete Project
                 </button>
-            {/if}
+                <p class="delete-warning">Once you delete a project, there is no going back. Please be certain.</p>
+            </div>
         </div>
     </div>
 
@@ -795,6 +820,14 @@
     </div>
 </div>
 
+<DeleteProjectModal
+    bind:isOpen={showDeleteModal}
+    projectName={project.project_name}
+    projectId={project.project_id}
+    on:deleted={handleProjectDeleted}
+    on:close={() => showDeleteModal = false}
+/>
+
 <style>
     .page-container {
         max-width: 700px;
@@ -973,11 +1006,50 @@
         color: var(--bb-text-primary);
     }
 
-    /* Submit Section */
-    .submit-section {
+    /* Action Buttons Section */
+    .action-buttons-section {
+        display: flex;
+        gap: 1rem;
         margin-top: 1.5rem;
         padding-top: 1.5rem;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .action-item {
+        flex: 1;
+    }
+
+    .delete-action {
+        text-align: right;
+    }
+
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        background: transparent;
+        color: #fca5a5;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 1px solid rgba(185, 28, 28, 0.5);
+        border-radius: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+        background: rgba(127, 29, 29, 0.3);
+        border-color: #ef4444;
+        color: #fecaca;
+    }
+
+    .delete-warning {
+        margin: 0.5rem 0 0;
+        font-size: 0.75rem;
+        color: var(--bb-text-muted);
+        font-style: italic;
     }
 
     .btn-submit {
@@ -1478,6 +1550,18 @@
         }
 
         .btn-primary, .btn-secondary {
+            width: 100%;
+        }
+
+        .action-buttons-section {
+            flex-direction: column;
+        }
+
+        .delete-action {
+            text-align: left;
+        }
+
+        .btn-delete {
             width: 100%;
         }
     }
