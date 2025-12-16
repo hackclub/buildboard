@@ -422,7 +422,7 @@
             {:else if showSubmitConfirm}
                 <div class="submit-confirm">
                     <p>Are you sure you want to submit this project for review?</p>
-                    <p class="submit-requirements">Requirements: Under 19, complete profile with birthday, shipping address, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
+                    <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
                     {#if submitErrors.length > 0}
                         <div class="validation-errors">
                             <p class="error-title">Please fix the following issues:</p>
@@ -545,7 +545,7 @@
                 </li>
             </ul>
             
-            <p class="requirements-note">You also need a complete profile, address, and be under 19 to submit.</p>
+            <p class="requirements-note">You also need a complete profile to submit.</p>
         </div>
     {/if}
 
