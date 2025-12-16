@@ -618,7 +618,7 @@
     </div>
 
     <!-- GitHub Integration Card -->
-    <div class="card" id="github">
+    <div class="card hidden" id="github">
         <div class="card-header">
             <h2>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
