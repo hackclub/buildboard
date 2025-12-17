@@ -426,55 +426,51 @@
                     Source Code
                 </a>
             {/if}
-        </div>
-
-        <!-- Action Buttons Section -->
-        <div class="action-buttons-section">
-            <!-- Submit Section -->
-            <div class="action-item">
-                {#if project.shipped}
-                    <div class="shipped-badge">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                            <polyline points="22,4 12,14.01 9,11.01" />
-                        </svg>
-                        Project Submitted
-                    </div>
-                {:else if showSubmitConfirm}
-                    <div class="submit-confirm">
-                        <p>Are you sure you want to submit this project for review?</p>
-                        <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
-                        {#if submitErrors.length > 0}
-                            <div class="validation-errors">
-                                <p class="error-title">Please fix the following issues:</p>
-                                <ul>
-                                    {#each submitErrors as error}
-                                        <li>{error.message}</li>
-                                    {/each}
-                                </ul>
-                            </div>
-                        {/if}
-                        <div class="submit-actions">
-                            <button class="btn-secondary" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
-                                Cancel
-                            </button>
-                            <button class="btn-submit" on:click={submitProject} disabled={submitting}>
-                                {submitting ? "Validating..." : "Yes, Submit"}
-                            </button>
-                        </div>
-                    </div>
-                {:else}
-                    <button class="btn-submit" on:click={() => showSubmitConfirm = true}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 2L11 13" />
-                            <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-                        </svg>
-                        Submit Project
+            
+            {#if project.shipped}
+                <div class="shipped-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                        <polyline points="22,4 12,14.01 9,11.01" />
+                    </svg>
+                    Submitted
+                </div>
+            {:else if showSubmitConfirm}
+                <div class="submit-confirm-inline">
+                    <button class="link-btn btn-cancel" on:click={() => { showSubmitConfirm = false; submitErrors = []; }} disabled={submitting}>
+                        Cancel
                     </button>
+                    <button class="link-btn btn-confirm" on:click={submitProject} disabled={submitting}>
+                        {submitting ? "Validating..." : "Confirm"}
+                    </button>
+                </div>
+            {:else}
+                <button class="link-btn btn-submit-inline" on:click={() => showSubmitConfirm = true}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 2L11 13" />
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                    </svg>
+                    Submit
+                </button>
+            {/if}
+        </div>
+        
+        {#if showSubmitConfirm}
+            <div class="submit-confirm-message">
+                <p>Are you sure you want to submit this project for review?</p>
+                <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
+                {#if submitErrors.length > 0}
+                    <div class="validation-errors-inline">
+                        <p class="error-title">Please fix the following:</p>
+                        <ul>
+                            {#each submitErrors as error}
+                                <li>{error.message}</li>
+                            {/each}
+                        </ul>
+                    </div>
                 {/if}
             </div>
-
-        </div>
+        {/if}
     </div>
 
     <!-- Submission Requirements Checklist -->
@@ -1034,7 +1030,90 @@
         color: var(--bb-text-primary);
     }
 
-    /* Action Buttons Section */
+    .btn-submit-inline {
+        background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+        border-color: #16a34a;
+        color: #fff;
+    }
+
+    .btn-submit-inline:hover {
+        background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+        border-color: #15803d;
+        color: #fff;
+    }
+
+    .submit-confirm-inline {
+        display: contents;
+    }
+
+    .btn-cancel {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-confirm {
+        background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+        border-color: #16a34a;
+        color: #fff;
+    }
+
+    .btn-confirm:hover {
+        background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+    }
+
+    .shipped-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        border-radius: 0;
+        color: #4ade80;
+        font-size: 0.9rem;
+    }
+
+    .submit-confirm-message {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .submit-confirm-message p {
+        margin: 0 0 0.5rem;
+        font-size: 0.9rem;
+        color: var(--bb-text-primary);
+    }
+
+    .submit-confirm-message .submit-requirements {
+        font-size: 0.8rem;
+        color: var(--bb-text-muted);
+        margin-bottom: 0;
+    }
+
+    .validation-errors-inline {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 0;
+    }
+
+    .validation-errors-inline .error-title {
+        margin: 0 0 0.5rem;
+        font-size: 0.85rem;
+        color: #fca5a5;
+    }
+
+    .validation-errors-inline ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        font-size: 0.8rem;
+        color: #fca5a5;
+    }
+
+    /* Action Buttons Section - keeping for delete button */
     .action-buttons-section {
         display: flex;
         gap: 1rem;
