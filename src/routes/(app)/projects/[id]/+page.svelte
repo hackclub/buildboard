@@ -455,14 +455,20 @@
             {/if}
         </div>
         
-        {#if showSubmitConfirm && submitErrors.length > 0}
-            <div class="validation-errors-inline">
-                <p class="error-title">Please fix the following:</p>
-                <ul>
-                    {#each submitErrors as error}
-                        <li>{error.message}</li>
-                    {/each}
-                </ul>
+        {#if showSubmitConfirm}
+            <div class="submit-confirm-message">
+                <p>Are you sure you want to submit this project for review?</p>
+                <p class="submit-requirements">Requirements: Complete profile, linked Hackatime project, GitHub repo URL, live URL, and screenshot.</p>
+                {#if submitErrors.length > 0}
+                    <div class="validation-errors-inline">
+                        <p class="error-title">Please fix the following:</p>
+                        <ul>
+                            {#each submitErrors as error}
+                                <li>{error.message}</li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
             </div>
         {/if}
     </div>
@@ -1065,6 +1071,25 @@
         border-radius: 0;
         color: #4ade80;
         font-size: 0.9rem;
+    }
+
+    .submit-confirm-message {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .submit-confirm-message p {
+        margin: 0 0 0.5rem;
+        font-size: 0.9rem;
+        color: var(--bb-text-primary);
+    }
+
+    .submit-confirm-message .submit-requirements {
+        font-size: 0.8rem;
+        color: var(--bb-text-muted);
+        margin-bottom: 0;
     }
 
     .validation-errors-inline {
