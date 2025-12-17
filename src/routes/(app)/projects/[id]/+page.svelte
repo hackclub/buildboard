@@ -595,7 +595,7 @@
 
         {#if isEditingHackatime}
             <div class="hackatime-edit">
-                <HackatimeSelector bind:selectedKeys={hackatimeKeys} />
+                <HackatimeSelector bind:selectedKeys={hackatimeKeys} projectId={project.project_id} />
                 {#if hackatimeError}
                     <div class="form-error">{hackatimeError}</div>
                 {/if}
