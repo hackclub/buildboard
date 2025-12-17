@@ -1540,7 +1540,7 @@
         font-weight: 500;
         font-size: 0.9rem;
         border: 1px solid var(--bb-accent-dark);
-        border-radius: 6px;
+        border-radius: 0;
         cursor: pointer;
         transition: all 0.2s;
     }

@@ -265,7 +265,7 @@
         color: var(--bb-text-primary);
         cursor: pointer;
         padding: 0.5rem;
-        border-radius: 6px;
+        border-radius: 0;
         transition: background 0.2s;
     }
 
@@ -282,7 +282,7 @@
     .mobile-avatar img {
         width: 32px;
         height: 32px;
-        border-radius: 50%;
+        border-radius: 0;
         border: 2px solid var(--bb-primary);
     }
 
@@ -325,7 +325,7 @@
     .logo-img {
         width: 36px;
         height: 36px;
-        border-radius: 6px;
+        border-radius: 0;
     }
 
     .logo-text {
@@ -340,7 +340,7 @@
         gap: 0.75rem;
         padding: 0.75rem;
         margin-bottom: 1.5rem;
-        border-radius: 8px;
+        border-radius: 0;
         background: rgba(109, 46, 43, 0.3);
         border: 1px solid var(--bb-accent-dark);
         text-decoration: none;
@@ -360,7 +360,7 @@
     .avatar {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: 0;
         border: 2px solid var(--bb-primary);
         flex-shrink: 0;
     }
@@ -405,7 +405,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem;
-        border-radius: 6px;
+        border-radius: 0;
         text-decoration: none;
         color: var(--bb-text-secondary);
         font-size: 0.9rem;
