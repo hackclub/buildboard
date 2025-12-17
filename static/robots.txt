@@ -1,3 +1,17 @@
-# allow crawling everything by default
+# BuildBoard by Hack Club
+# https://buildboard.hackclub.com
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://buildboard.hackclub.com/sitemap.xml
+
+# Disallow private/auth pages
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /api/
+
+# Crawl delay (optional, be nice to the server)
+Crawl-delay: 1
