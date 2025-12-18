@@ -75,7 +75,7 @@
     const slides = [
         {
             image: "/slides/slide_one.png",
-            text: "Welcome..... sooo you wanna be known for building cool shit?",
+            text: "Welcome..... sooo you wanna be known for building cool s**t?",
             showCharacterSelect: false,
             showTerms: false
         },
