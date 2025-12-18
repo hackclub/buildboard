@@ -3,7 +3,7 @@
 </script>
 
 <div class="container mx-auto">
-    <h1 class="text-4xl font-bold text-neutral-800 mb-8">Admin Dashboard</h1>
+    <h1 class="text-4xl font-bold text-white mb-8">Admin Dashboard</h1>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Manage Projects -->
@@ -16,11 +16,13 @@
             <p class="text-neutral-500 mb-6">
                 View and manage all user projects.
             </p>
-            <button
-                class="w-full bg-neutral-800 text-white py-2 hover:bg-neutral-700 transition-colors"
-            >
-                View Projects
-            </button>
+            <a href="/admin/projects" class="w-full block">
+                <button
+                    class="w-full bg-neutral-800 text-white py-2 hover:bg-neutral-700 transition-colors"
+                >
+                    View Projects
+                </button>
+            </a>
         </div>
 
         <!-- Manage Users -->
