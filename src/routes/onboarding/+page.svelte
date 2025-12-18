@@ -246,7 +246,7 @@
             await updateUser();
         }
         
-        goto("/");
+        goto("/home");
     }
 
     function skipToTerms() {
