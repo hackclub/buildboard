@@ -146,7 +146,7 @@
                         </a>
                     {/if}
 
-                    !<!--<a
+                    <!--<a
                         href="/settings"
                         class="nav-link"
                         class:active={$page.url.pathname.includes("/settings")}
