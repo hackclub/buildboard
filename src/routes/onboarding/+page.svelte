@@ -290,6 +290,14 @@
     let speakerName = $derived(selectedAuthor ? selectedAuthor.name.toUpperCase() : "BUILDBOARD");
 </script>
 
+<svelte:head>
+    <title>Welcome to BuildBoard | Get Started</title>
+    <meta name="description" content="Start your BuildBoard journey. Learn how to submit your project and get featured on a billboard in NYC." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Welcome to BuildBoard | Get Started" />
+    <meta property="og:description" content="Start your BuildBoard journey. Learn how to submit your project and get featured on a billboard in NYC." />
+</svelte:head>
+
 <svelte:window onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

@@ -2,6 +2,66 @@
 	import { faqSections } from '$lib/data/faq';
 </script>
 
+<svelte:head>
+	<title>FAQ - BuildBoard | Frequently Asked Questions</title>
+	<meta name="description" content="Find answers to common questions about BuildBoard. Learn how to submit projects, eligibility requirements, billboard locations, and more." />
+	<meta property="og:title" content="FAQ - BuildBoard | Frequently Asked Questions" />
+	<meta property="og:description" content="Find answers to common questions about BuildBoard. Learn how to submit projects, eligibility requirements, billboard locations, and more." />
+	<meta property="og:url" content="https://buildboard.hackclub.com/faq" />
+	<meta name="twitter:title" content="FAQ - BuildBoard | Frequently Asked Questions" />
+	<meta name="twitter:description" content="Find answers to common questions about BuildBoard. Learn how to submit projects, eligibility requirements, billboard locations, and more." />
+	<link rel="canonical" href="https://buildboard.hackclub.com/faq" />
+
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		"mainEntity": [
+			{
+				"@type": "Question",
+				"name": "What is BuildBoard?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "BuildBoard is a program that immortalizes Hack Clubbers' projects. Ship your passion project, document the journey, and get featured on a billboard in NYC or near you."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Who is eligible to participate?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "BuildBoard is open to all Hack Club members and young makers who have built a project they're proud of. Whether you're a beginner or experienced developer, if you've created something meaningful, we want to see it!"
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "How do I submit my project?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "To submit your project, log into your BuildBoard account and navigate to the submission page. You'll need to provide details about your project, upload images or videos, and share the story behind what you built."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Where will the billboard be located?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "Our primary billboard is located in New York City, but we're expanding to additional locations. Check our announcements for the latest billboard locations near you."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "How are projects selected for the billboard?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "Projects are reviewed by our team based on creativity, effort, impact, and how well they represent the maker spirit. We aim to showcase a diverse range of projects from our community."
+				}
+			}
+		]
+	}
+	</script>`}
+</svelte:head>
+
 <div class="faq-page">
 	<div class="content">
 		<h1>Frequently Asked Questions</h1>
