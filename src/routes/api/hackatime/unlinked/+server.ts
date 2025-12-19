@@ -11,6 +11,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
     try {
         const userID = unhashUserID(hashedUserID);
+        console.log('[unlinked] Fetching for user:', userID);
 
         const response = await fetch(getBackendUrl('/projects/hackatime-projects/unlinked'), {
             headers: {
