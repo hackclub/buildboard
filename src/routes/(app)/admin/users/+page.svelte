@@ -1,4 +1,15 @@
 <script lang="ts">
+    interface Journey {
+        current_step: string;
+        completed_count: number;
+        total_steps: number;
+        storyline: boolean;
+        slack: boolean;
+        idv: boolean;
+        hackatime: boolean;
+        onboarding: boolean;
+    }
+
     interface User {
         user_id: string;
         handle: string;
@@ -6,6 +17,7 @@
         project_count: number;
         onboarding_completed_at: string | null;
         created_at: string;
+        journey?: Journey;
     }
 
     let users = $state<User[]>([]);
@@ -113,7 +125,7 @@
                         <th>Handle</th>
                         <th>Email</th>
                         <th>Projects</th>
-                        <th>Onboarding</th>
+                        <th>Journey</th>
                         <th>Joined</th>
                     </tr>
                 </thead>
@@ -132,7 +144,19 @@
                                 </span>
                             </td>
                             <td>
-                                {#if user.onboarding_completed_at}
+                                {#if user.journey}
+                                    <div class="journey-cell">
+                                        <div class="journey-steps">
+                                            <span class="step-dot" class:done={true} title="Registered">👤</span>
+                                            <span class="step-dot" class:done={user.journey.storyline} title="Storyline">📖</span>
+                                            <span class="step-dot" class:done={user.journey.slack} title="Slack">💬</span>
+                                            <span class="step-dot" class:done={user.journey.idv} title="ID Verified">✅</span>
+                                            <span class="step-dot" class:done={user.journey.hackatime} title="Hackatime">⏱️</span>
+                                            <span class="step-dot" class:done={user.journey.onboarding} title="Onboarded">🎉</span>
+                                        </div>
+                                        <span class="journey-progress">{user.journey.completed_count}/{user.journey.total_steps}</span>
+                                    </div>
+                                {:else if user.onboarding_completed_at}
                                     <span class="status-complete">Complete</span>
                                 {:else}
                                     <span class="status-pending">In Progress</span>
@@ -366,5 +390,34 @@
     .btn-secondary:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .journey-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .journey-steps {
+        display: flex;
+        gap: 0.15rem;
+    }
+
+    .step-dot {
+        font-size: 0.75rem;
+        opacity: 0.3;
+        filter: grayscale(1);
+        transition: all 0.2s;
+    }
+
+    .step-dot.done {
+        opacity: 1;
+        filter: grayscale(0);
+    }
+
+    .journey-progress {
+        font-size: 0.7rem;
+        color: var(--bb-text-muted);
+        font-weight: 500;
     }
 </style>
