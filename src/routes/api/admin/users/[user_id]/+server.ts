@@ -27,8 +27,15 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 		});
 
 		if (!response.ok) {
-			const errorText = await response.text();
-			return json({ error: errorText || 'Failed to fetch user details' }, { status: response.status });
+			let errorMsg = 'Failed to fetch user details';
+			try {
+				const errorData = await response.json();
+				errorMsg = errorData.detail || errorData.error || errorMsg;
+			} catch {
+				errorMsg = await response.text() || errorMsg;
+			}
+			console.error('Backend error:', response.status, errorMsg);
+			return json({ error: errorMsg }, { status: response.status });
 		}
 
 		return json(await response.json());
