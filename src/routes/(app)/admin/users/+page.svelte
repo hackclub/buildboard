@@ -3,7 +3,6 @@
         current_step: string;
         completed_count: number;
         total_steps: number;
-        storyline: boolean;
         slack: boolean;
         idv: boolean;
         hackatime: boolean;
@@ -147,12 +146,11 @@
                                 {#if user.journey}
                                     <div class="journey-cell">
                                         <div class="journey-steps">
-                                            <span class="step-dot" class:done={true} title="Registered">👤</span>
-                                            <span class="step-dot" class:done={user.journey.storyline} title="Storyline">📖</span>
-                                            <span class="step-dot" class:done={user.journey.slack} title="Slack">💬</span>
-                                            <span class="step-dot" class:done={user.journey.idv} title="ID Verified">✅</span>
-                                            <span class="step-dot" class:done={user.journey.hackatime} title="Hackatime">⏱️</span>
-                                            <span class="step-dot" class:done={user.journey.onboarding} title="Onboarded">🎉</span>
+                                            <span class="step-dot" class:done={true} title="Registered">1</span>
+                                            <span class="step-dot" class:done={user.journey.slack} title="Slack">2</span>
+                                            <span class="step-dot" class:done={user.journey.idv} title="ID Verified">3</span>
+                                            <span class="step-dot" class:done={user.journey.hackatime} title="Hackatime">4</span>
+                                            <span class="step-dot" class:done={user.journey.onboarding} title="Onboarded">5</span>
                                         </div>
                                         <span class="journey-progress">{user.journey.completed_count}/{user.journey.total_steps}</span>
                                     </div>

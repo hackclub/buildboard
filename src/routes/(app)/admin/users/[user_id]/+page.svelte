@@ -30,8 +30,7 @@
             birthday: string | null;
         };
         journey: {
-            storyline: JourneyStep;
-            slack: JourneyStep;
+            slack: JourneyStep & { slack_id?: string };
             idv: JourneyStep;
             hackatime: JourneyStep;
             onboarding: JourneyStep;
@@ -221,17 +220,9 @@
                 <div class="journey-list">
                     {#each Object.entries(data.journey) as [step, info]}
                         <div class="journey-item" class:completed={info.completed}>
-                            <span class="journey-icon">
-                                {#if step === 'storyline'}📖
-                                {:else if step === 'slack'}💬
-                                {:else if step === 'idv'}✅
-                                {:else if step === 'hackatime'}⏱️
-                                {:else if step === 'onboarding'}🎉
-                                {/if}
-                            </span>
                             <span class="journey-name">{step.charAt(0).toUpperCase() + step.slice(1)}</span>
-                            {#if info.completed && info.completed_at}
-                                <span class="journey-date">{formatDate(info.completed_at)}</span>
+                            {#if info.completed}
+                                <span class="journey-date">✓</span>
                             {:else}
                                 <span class="journey-pending">Pending</span>
                             {/if}

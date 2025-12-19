@@ -32,7 +32,6 @@
         };
         user_journey: {
             total_users: number;
-            storyline_completed: number;
             slack_linked: number;
             idv_completed: number;
             hackatime_completed: number;
@@ -68,11 +67,11 @@
     });
 
     const journeySteps = $derived(stats?.user_journey ? [
-        { label: 'signed up', value: stats.user_journey.total_users },
-        { label: 'onboarding', value: stats.user_journey.storyline_completed },
+        { label: 'Signed Up', value: stats.user_journey.total_users },
         { label: 'Linked Slack', value: stats.user_journey.slack_linked },
         { label: 'ID Verified', value: stats.user_journey.idv_completed },
         { label: 'Hackatime', value: stats.user_journey.hackatime_completed },
+        { label: 'Onboarded', value: stats.user_journey.onboarding_completed },
         { label: 'Has Projects', value: stats.user_journey.has_projects },
         { label: 'Shipped', value: stats.user_journey.has_shipped },
     ] : []);
