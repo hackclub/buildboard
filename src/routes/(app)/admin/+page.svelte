@@ -1,4 +1,6 @@
 <script lang="ts">
+    import FunnelChart from '$lib/components/FunnelChart.svelte';
+
     interface Stats {
         projects: {
             total: number;
@@ -28,6 +30,16 @@
             starts_last_7d: number;
             completions_last_7d: number;
         };
+        user_journey: {
+            total_users: number;
+            storyline_completed: number;
+            slack_linked: number;
+            idv_completed: number;
+            hackatime_completed: number;
+            onboarding_completed: number;
+            has_projects: number;
+            has_shipped: number;
+        };
     }
 
     let { data } = $props();
@@ -54,6 +66,16 @@
     $effect(() => {
         fetchStats();
     });
+
+    const journeySteps = $derived(stats?.user_journey ? [
+        { label: 'signed up', value: stats.user_journey.total_users },
+        { label: 'onboarding', value: stats.user_journey.storyline_completed },
+        { label: 'Linked Slack', value: stats.user_journey.slack_linked },
+        { label: 'ID Verified', value: stats.user_journey.idv_completed },
+        { label: 'Hackatime', value: stats.user_journey.hackatime_completed },
+        { label: 'Has Projects', value: stats.user_journey.has_projects },
+        { label: 'Shipped', value: stats.user_journey.has_shipped },
+    ] : []);
 </script>
 
 <div class="page-container">
@@ -206,6 +228,24 @@
                     {/if}
                 </div>
             </div>
+
+            <!-- User Journey Funnel Card -->
+            {#if stats.user_journey && journeySteps.length > 0}
+                <div class="card card-full-width">
+                    <div class="card-badge">User Journey Funnel</div>
+                    <FunnelChart steps={journeySteps} height={320} />
+                    <div class="funnel-summary">
+                        <span class="rate-label">Total conversion (Registered → Shipped):</span>
+                        <span class="rate-value">
+                            {#if stats.user_journey.total_users > 0}
+                                {((stats.user_journey.has_shipped / stats.user_journey.total_users) * 100).toFixed(1)}%
+                            {:else}
+                                0%
+                            {/if}
+                        </span>
+                    </div>
+                </div>
+            {/if}
         </div>
     {/if}
 </div>
@@ -412,5 +452,18 @@
         font-size: 0.85rem;
         font-weight: 600;
         color: var(--bb-primary);
+    }
+
+    .card-full-width {
+        grid-column: 1 / -1;
+    }
+
+    .funnel-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 </style>
