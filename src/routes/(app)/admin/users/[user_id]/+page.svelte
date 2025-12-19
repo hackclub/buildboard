@@ -96,7 +96,10 @@
         error = null;
         try {
             const res = await fetch(`/api/admin/users/${$page.params.user_id}`);
-            if (!res.ok) throw new Error('Failed to fetch user');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || errData.detail || `Failed to fetch user (${res.status})`);
+            }
             data = await res.json();
         } catch (e) {
             error = e instanceof Error ? e.message : 'Unknown error';
