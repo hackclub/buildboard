@@ -1,88 +1,39 @@
 <script lang="ts">
-    import { page } from '$app/stores';
-    import { goto } from '$app/navigation';
-    import { browser } from '$app/environment';
-
     interface ProjectUser {
         user_id: string;
         handle: string;
-        email: string;
     }
 
-    interface Project {
+    interface AnomalyProject {
         project_id: string;
         project_name: string;
-        project_description: string;
-        project_type: string;
+        anomaly_type: 'zero_hours' | 'high_hours' | 'null_hours';
+        hackatime_hours: number | null;
         submission_week: string;
-        shipped: boolean;
-        hackatime_hours: number;
         review_status: string;
-        review_notes: string | null;
-        reviewed_by: string | null;
-        reviewed_at: string | null;
         created_at: string;
-        sent_to_airtable?: boolean;
         user: ProjectUser;
     }
 
     type ReviewStatus = 'pending' | 'approved' | 'rejected' | 'flagged';
 
-    let projects = $state<Project[]>([]);
+    let projects = $state<AnomalyProject[]>([]);
     let loading = $state(true);
     let error = $state<string | null>(null);
     let currentPage = $state(0);
     let hasMore = $state(true);
     const limit = 50;
 
-    let searchQuery = $state('');
-    let reviewStatusFilter = $state<string>('');
-    let shippedFilter = $state<string>('');
-    let weekFilter = $state('');
-
-    let reviewingProject = $state<Project | null>(null);
-    let reviewStatus = $state<ReviewStatus>('pending');
-    let reviewNotes = $state('');
-    let reviewLoading = $state(false);
-
-    $effect(() => {
-        if (browser) {
-            const params = $page.url.searchParams;
-            searchQuery = params.get('q') || '';
-            reviewStatusFilter = params.get('review_status') || '';
-            shippedFilter = params.get('shipped') || '';
-            weekFilter = params.get('week') || '';
-            currentPage = parseInt(params.get('page') || '0', 10);
-        }
-    });
-
-    function updateUrl() {
-        if (!browser) return;
-        const params = new URLSearchParams();
-        if (searchQuery) params.set('q', searchQuery);
-        if (reviewStatusFilter) params.set('review_status', reviewStatusFilter);
-        if (shippedFilter) params.set('shipped', shippedFilter);
-        if (weekFilter) params.set('week', weekFilter);
-        if (currentPage > 0) params.set('page', currentPage.toString());
-        
-        const newUrl = params.toString() ? `?${params.toString()}` : '/admin/projects';
-        goto(newUrl, { replaceState: true, keepFocus: true });
-    }
-
     async function fetchProjects() {
         loading = true;
         error = null;
         try {
-            const params = new URLSearchParams();
-            if (searchQuery) params.set('q', searchQuery);
-            if (reviewStatusFilter) params.set('review_status', reviewStatusFilter);
-            if (shippedFilter) params.set('shipped', shippedFilter);
-            if (weekFilter) params.set('week', weekFilter);
-            params.set('skip', (currentPage * limit).toString());
-            params.set('limit', limit.toString());
-
-            const res = await fetch(`/api/admin/projects?${params.toString()}`);
-            if (!res.ok) throw new Error('Failed to fetch projects');
+            const params = new URLSearchParams({
+                skip: (currentPage * limit).toString(),
+                limit: limit.toString()
+            });
+            const res = await fetch(`/api/admin/projects/anomalies?${params}`);
+            if (!res.ok) throw new Error('Failed to fetch anomalies');
             projects = await res.json();
             hasMore = projects.length === limit;
         } catch (e) {
@@ -92,26 +43,18 @@
         }
     }
 
-    function applyFilters() {
-        currentPage = 0;
-        updateUrl();
-        fetchProjects();
-    }
-
-    function clearFilters() {
-        searchQuery = '';
-        reviewStatusFilter = '';
-        shippedFilter = '';
-        weekFilter = '';
-        currentPage = 0;
-        updateUrl();
-        fetchProjects();
-    }
-
     function goToPage(page: number) {
         currentPage = page;
-        updateUrl();
         fetchProjects();
+    }
+
+    function getAnomalyInfo(type: string): { label: string; class: string } {
+        switch (type) {
+            case 'zero_hours': return { label: 'Zero Hours', class: 'anomaly-zero' };
+            case 'high_hours': return { label: '>80 Hours', class: 'anomaly-high' };
+            case 'null_hours': return { label: 'No Data', class: 'anomaly-null' };
+            default: return { label: 'Unknown', class: '' };
+        }
     }
 
     function getStatusClass(status: string): string {
@@ -124,41 +67,7 @@
         }
     }
 
-    function openReviewModal(project: Project) {
-        reviewingProject = project;
-        reviewStatus = (project.review_status as ReviewStatus) || 'pending';
-        reviewNotes = project.review_notes || '';
-    }
-
-    function closeReviewModal() {
-        reviewingProject = null;
-        reviewNotes = '';
-        reviewLoading = false;
-    }
-
-    async function submitReview() {
-        if (!reviewingProject) return;
-        reviewLoading = true;
-        try {
-            const res = await fetch(`/api/admin/projects/${reviewingProject.project_id}/review`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: reviewStatus, notes: reviewNotes })
-            });
-            if (!res.ok) throw new Error('Failed to update review');
-            const idx = projects.findIndex(p => p.project_id === reviewingProject!.project_id);
-            if (idx !== -1) {
-                projects[idx] = { ...projects[idx], review_status: reviewStatus, review_notes: reviewNotes };
-            }
-            closeReviewModal();
-        } catch (e) {
-            error = e instanceof Error ? e.message : 'Failed to update review';
-        } finally {
-            reviewLoading = false;
-        }
-    }
-
-    async function quickReview(project: Project, status: ReviewStatus) {
+    async function quickReview(project: AnomalyProject, status: ReviewStatus) {
         try {
             const res = await fetch(`/api/admin/projects/${project.project_id}/review`, {
                 method: 'POST',
@@ -175,6 +84,13 @@
         }
     }
 
+    function formatDate(dateStr: string): string {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
     $effect(() => {
         fetchProjects();
     });
@@ -183,8 +99,8 @@
 <div class="page-container">
     <header class="page-header">
         <div>
-            <h1>Projects</h1>
-            <p>Manage and review all platform projects</p>
+            <h1>Hours Anomalies</h1>
+            <p>Projects with unusual hackatime data</p>
         </div>
         <a href="/admin" class="back-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -194,37 +110,16 @@
         </a>
     </header>
 
-    <!-- Filters -->
-    <div class="filters-card">
-        <div class="filters-row">
-            <input
-                type="text"
-                bind:value={searchQuery}
-                onkeydown={(e) => e.key === 'Enter' && applyFilters()}
-                placeholder="Search projects..."
-                class="search-input"
-            />
-            <select bind:value={reviewStatusFilter} onchange={applyFilters} class="filter-select">
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="flagged">Flagged</option>
-            </select>
-            <select bind:value={shippedFilter} onchange={applyFilters} class="filter-select">
-                <option value="">All</option>
-                <option value="true">Shipped</option>
-                <option value="false">Not Shipped</option>
-            </select>
-            <button class="btn-primary" onclick={applyFilters}>Search</button>
-            <button class="btn-secondary" onclick={clearFilters}>Clear</button>
-        </div>
+    <div class="legend-card">
+        <span class="legend-item"><span class="dot anomaly-zero"></span> Zero Hours</span>
+        <span class="legend-item"><span class="dot anomaly-high"></span> High (&gt;80h)</span>
+        <span class="legend-item"><span class="dot anomaly-null"></span> No Data</span>
     </div>
 
     {#if loading}
         <div class="loading-state">
             <div class="loading-spinner"></div>
-            <p>Loading projects...</p>
+            <p>Loading anomalies...</p>
         </div>
     {:else if error}
         <div class="error-card">
@@ -233,10 +128,7 @@
         </div>
     {:else if projects.length === 0}
         <div class="empty-state">
-            <p>No projects found</p>
-            {#if searchQuery || reviewStatusFilter || shippedFilter}
-                <button class="btn-secondary" onclick={clearFilters}>Clear Filters</button>
-            {/if}
+            <p>No anomalies found 🎉</p>
         </div>
     {:else}
         <div class="table-card">
@@ -245,14 +137,15 @@
                     <tr>
                         <th>Project</th>
                         <th>User</th>
+                        <th>Anomaly</th>
                         <th>Hours</th>
                         <th>Status</th>
-                        <th>Shipped</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {#each projects as project}
+                        {@const anomaly = getAnomalyInfo(project.anomaly_type)}
                         <tr>
                             <td>
                                 <a href="/projects/{project.project_id}" class="project-link">
@@ -266,21 +159,15 @@
                                 </a>
                             </td>
                             <td>
-                                <span class="hours-value" class:hours-zero={!project.hackatime_hours} class:hours-high={project.hackatime_hours > 80}>
-                                    {project.hackatime_hours?.toFixed(1) || '0'}h
-                                </span>
+                                <span class="anomaly-badge {anomaly.class}">{anomaly.label}</span>
+                            </td>
+                            <td class="hours-cell">
+                                {project.hackatime_hours !== null ? project.hackatime_hours.toFixed(1) : '—'}
                             </td>
                             <td>
                                 <span class="status-badge {getStatusClass(project.review_status)}">
                                     {project.review_status || 'pending'}
                                 </span>
-                            </td>
-                            <td>
-                                {#if project.shipped}
-                                    <span class="shipped-badge">Shipped</span>
-                                {:else}
-                                    <span class="not-shipped">—</span>
-                                {/if}
                             </td>
                             <td class="actions-cell">
                                 {#if project.review_status !== 'approved'}
@@ -292,7 +179,6 @@
                                 {#if project.review_status !== 'flagged'}
                                     <button class="action-btn flag" onclick={() => quickReview(project, 'flagged')} title="Flag">⚑</button>
                                 {/if}
-                                <button class="action-btn edit" onclick={() => openReviewModal(project)} title="Edit">✎</button>
                             </td>
                         </tr>
                     {/each}
@@ -310,40 +196,9 @@
     {/if}
 </div>
 
-{#if reviewingProject}
-    <div class="modal-overlay" onclick={closeReviewModal}>
-        <div class="modal-content" onclick={(e) => e.stopPropagation()}>
-            <h2>Review Project</h2>
-            <p class="modal-subtitle">{reviewingProject.project_name}</p>
-            
-            <div class="form-group">
-                <label for="status">Status</label>
-                <select id="status" bind:value={reviewStatus} class="filter-select">
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="flagged">Flagged</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="notes">Notes</label>
-                <textarea id="notes" bind:value={reviewNotes} placeholder="Add review notes..." rows="3"></textarea>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick={closeReviewModal}>Cancel</button>
-                <button class="btn-primary" onclick={submitReview} disabled={reviewLoading}>
-                    {reviewLoading ? 'Saving...' : 'Save'}
-                </button>
-            </div>
-        </div>
-    </div>
-{/if}
-
 <style>
     .page-container {
-        max-width: 1100px;
+        max-width: 900px;
         margin: 0 auto;
         padding: 0 1rem 3rem;
     }
@@ -382,39 +237,31 @@
         color: var(--bb-primary);
     }
 
-    .filters-card {
+    .legend-card {
         background: rgba(46, 34, 33, 0.95);
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         margin-bottom: 1rem;
-    }
-
-    .filters-row {
         display: flex;
-        gap: 0.75rem;
+        gap: 1.5rem;
         flex-wrap: wrap;
     }
 
-    .search-input {
-        flex: 1;
-        min-width: 200px;
-        padding: 0.6rem 0.75rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--bb-text-primary);
-        font-size: 0.9rem;
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--bb-text-secondary);
     }
 
-    .search-input::placeholder {
-        color: var(--bb-text-muted);
+    .dot {
+        width: 10px;
+        height: 10px;
     }
 
-    .filter-select {
-        padding: 0.6rem 0.75rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--bb-text-primary);
-        font-size: 0.9rem;
-    }
+    .dot.anomaly-zero { background: #f87171; }
+    .dot.anomaly-high { background: #fbbf24; }
+    .dot.anomaly-null { background: #a3a3a3; }
 
     .loading-state, .empty-state {
         display: flex;
@@ -511,16 +358,31 @@
         color: var(--bb-primary);
     }
 
-    .hours-value {
-        color: var(--bb-text-primary);
+    .anomaly-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
     }
 
-    .hours-zero {
+    .anomaly-zero {
+        background: rgba(248, 113, 113, 0.2);
         color: #f87171;
     }
 
-    .hours-high {
+    .anomaly-high {
+        background: rgba(251, 191, 36, 0.2);
         color: #fbbf24;
+    }
+
+    .anomaly-null {
+        background: rgba(163, 163, 163, 0.2);
+        color: #a3a3a3;
+    }
+
+    .hours-cell {
+        color: var(--bb-text-muted);
     }
 
     .status-badge {
@@ -551,15 +413,6 @@
         color: #fb923c;
     }
 
-    .shipped-badge {
-        color: #4ade80;
-        font-size: 0.8rem;
-    }
-
-    .not-shipped {
-        color: var(--bb-text-muted);
-    }
-
     .actions-cell {
         display: flex;
         gap: 0.25rem;
@@ -584,8 +437,6 @@
     .action-btn.reject:hover { background: rgba(248, 113, 113, 0.2); }
     .action-btn.flag { color: #fb923c; }
     .action-btn.flag:hover { background: rgba(251, 146, 60, 0.2); }
-    .action-btn.edit { color: var(--bb-text-muted); }
-    .action-btn.edit:hover { background: rgba(255, 255, 255, 0.1); color: var(--bb-text-primary); }
 
     .pagination {
         display: flex;
@@ -602,27 +453,6 @@
     .pagination-btns {
         display: flex;
         gap: 0.5rem;
-    }
-
-    .btn-primary {
-        padding: 0.6rem 1rem;
-        background: linear-gradient(180deg, var(--bb-primary) 0%, var(--bb-primary-dark) 100%);
-        color: var(--bb-bg-dark);
-        font-weight: 600;
-        font-size: 0.85rem;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-1px);
-    }
-
-    .btn-primary:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
     }
 
     .btn-secondary {
@@ -644,69 +474,5 @@
     .btn-secondary:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-    }
-
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 100;
-    }
-
-    .modal-content {
-        background: rgba(46, 34, 33, 0.98);
-        padding: 1.5rem;
-        width: 100%;
-        max-width: 400px;
-        margin: 1rem;
-    }
-
-    .modal-content h2 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--bb-text-primary);
-        margin: 0 0 0.25rem;
-    }
-
-    .modal-subtitle {
-        color: var(--bb-text-muted);
-        margin: 0 0 1.5rem;
-        font-size: 0.9rem;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .form-group label {
-        display: block;
-        font-size: 0.85rem;
-        color: var(--bb-text-secondary);
-        margin-bottom: 0.5rem;
-    }
-
-    .form-group textarea {
-        width: 100%;
-        padding: 0.6rem 0.75rem;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--bb-text-primary);
-        font-size: 0.9rem;
-        resize: none;
-    }
-
-    .form-group textarea::placeholder {
-        color: var(--bb-text-muted);
-    }
-
-    .modal-actions {
-        display: flex;
-        gap: 0.75rem;
-        justify-content: flex-end;
-        padding-top: 1rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 </style>
