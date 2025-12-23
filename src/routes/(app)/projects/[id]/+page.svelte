@@ -525,7 +525,7 @@
             </div>
             
             <ul class="requirements-list">
-                <li class:completed={hasGithub}>
+                <!--<li class:completed={hasGithub}>
                     <span class="check-icon">
                         {#if hasGithub}
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -542,7 +542,7 @@
                     {#if !hasGithub}
                         <span class="req-action">Link below</span>
                     {/if}
-                </li>
+                </li>-->
                 <li class:completed={hasLiveUrl}>
                     <span class="check-icon">
                         {#if hasLiveUrl}
@@ -649,7 +649,7 @@
     </div>
 
     <!-- GitHub Integration Card -->
-    <div class="card" id="github">
+    <!--<div class="card" id="github">
         <div class="card-header">
             <h2>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -710,7 +710,7 @@
                 </button>
             </div>
         {/if}
-    </div>
+    </div> -->
 
     <!-- Project URLs Card -->
     <div class="card" id="urls">
