@@ -52,6 +52,12 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
         const identityVaultId = userIDV.identity.id;
         const verificationStatus = userInfo.verification_status || userIDV.identity.verification_status;
         const yswsEligible = userInfo.ysws_eligible ?? userIDV.identity.ysws_eligible ?? false;
+        
+        console.log('[IDV Callback] YSWS Debug:', {
+            from_userinfo: userInfo.ysws_eligible,
+            from_identity: userIDV.identity.ysws_eligible,
+            resolved: yswsEligible
+        });
 
         const duplicateCheckResponse = await fetch(
             getBackendUrl(`/users/by-identity-vault-id/${encodeURIComponent(identityVaultId)}`),

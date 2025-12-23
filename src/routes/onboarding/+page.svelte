@@ -1,25 +1,81 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { getUser, updateUser } from "$lib/state/user.svelte";
     import { page } from "$app/stores";
 
     interface Author {
         id: string;
         name: string;
-        avatar: string;
+        frames: string[];
     }
 
     const AUTHORS: Author[] = [
-        { id: 'dhamari', name: 'Dhamari', avatar: '/slides/dhamari.png' },
-        { id: 'alex', name: 'Alex', avatar: '/slides/alex.png' }
+        { id: 'dhamari', name: 'Dhamari', frames: ['/slides/dhamari_hand.png', '/slides/dhamari_rested_closed.png', '/slides/dhamari_rested_open.png'] },
+        { id: 'alex', name: 'Alex', frames: ['/slides/alex_hand.png', '/slides/alex_rested_closed.png', '/slides/alex_rested_open.png'] }
     ];
+
+    let authorFrameIndex = $state<Record<string, number>>({ dhamari: 0, alex: 0 });
+    let dhamariTimeout: ReturnType<typeof setTimeout> | null = null;
+    let alexTimeout: ReturnType<typeof setTimeout> | null = null;
+    let animationRunning = false;
+
+    function getRandomDelay() {
+        return 1000 + Math.random() * 4000; // 1-5 seconds
+    }
+
+    function animateDhamari() {
+        if (!animationRunning) return;
+        authorFrameIndex = { ...authorFrameIndex, dhamari: (authorFrameIndex.dhamari + 1) % 3 };
+        dhamariTimeout = setTimeout(animateDhamari, getRandomDelay());
+    }
+
+    function animateAlex() {
+        if (!animationRunning) return;
+        authorFrameIndex = { ...authorFrameIndex, alex: (authorFrameIndex.alex + 1) % 3 };
+        alexTimeout = setTimeout(animateAlex, getRandomDelay());
+    }
+
+    function startAvatarAnimation() {
+        if (animationRunning) return;
+        animationRunning = true;
+        
+        // Start Dhamari animation immediately
+        dhamariTimeout = setTimeout(animateDhamari, getRandomDelay());
+        
+        // Start Alex animation 300ms later
+        setTimeout(() => {
+            if (animationRunning) {
+                alexTimeout = setTimeout(animateAlex, getRandomDelay());
+            }
+        }, 300);
+    }
+
+    function stopAvatarAnimation() {
+        animationRunning = false;
+        if (dhamariTimeout) {
+            clearTimeout(dhamariTimeout);
+            dhamariTimeout = null;
+        }
+        if (alexTimeout) {
+            clearTimeout(alexTimeout);
+            alexTimeout = null;
+        }
+    }
+
+    function getAuthorAvatar(author: Author): string {
+        return author.frames[authorFrameIndex[author.id]];
+    }
+
+    function isHandFrame(author: Author): boolean {
+        return authorFrameIndex[author.id] === 0;
+    }
 
     const slides = [
         {
             image: "/slides/slide_one.png",
-            text: "Welcome..... sooo you wanna be known for building cool shit?",
+            text: "Welcome..... sooo you wanna be known for building cool s**t?",
             showCharacterSelect: false,
             showTerms: false
         },
@@ -100,6 +156,7 @@
                 if (slides[step].showCharacterSelect) {
                     setTimeout(() => {
                         showCharacterOptions = true;
+                        startAvatarAnimation();
                     }, 600);
                 }
                 if (slides[step].showTerms) {
@@ -139,6 +196,7 @@
             isTyping = false;
             if (slides[step].showCharacterSelect) {
                 showCharacterOptions = true;
+                startAvatarAnimation();
             }
             if (slides[step].showTerms) {
                 showTermsBox = true;
@@ -188,7 +246,7 @@
             await updateUser();
         }
         
-        goto("/");
+        goto("/home");
     }
 
     function skipToTerms() {
@@ -225,8 +283,20 @@
         }
     });
 
+    onDestroy(() => {
+        stopAvatarAnimation();
+    });
+
     let speakerName = $derived(selectedAuthor ? selectedAuthor.name.toUpperCase() : "BUILDBOARD");
 </script>
+
+<svelte:head>
+    <title>Welcome to BuildBoard | Get Started</title>
+    <meta name="description" content="Start your BuildBoard journey. Learn how to submit your project and get featured on a billboard in NYC." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Welcome to BuildBoard | Get Started" />
+    <meta property="og:description" content="Start your BuildBoard journey. Learn how to submit your project and get featured on a billboard in NYC." />
+</svelte:head>
 
 <svelte:window onkeydown={handleKeydown} />
 
@@ -250,7 +320,7 @@
             <div class="characters">
                 {#each AUTHORS as author}
                     <button class="character-option" onclick={(e) => { e.stopPropagation(); selectAuthor(author); }}>
-                        <img src={author.avatar} alt={author.name} class="character-image" />
+                        <img src={getAuthorAvatar(author)} alt={author.name} class="character-image" class:hand-frame={isHandFrame(author)} />
                         <span class="character-name">{author.name.toUpperCase()}</span>
                     </button>
                 {/each}
@@ -261,7 +331,7 @@
     <!-- Selected character display - shows after selection -->
     {#if selectedAuthor && !slides[step].showTerms}
         <div class="selected-character">
-            <img src={selectedAuthor.avatar} alt={selectedAuthor.name} class="guide-image" />
+            <img src={getAuthorAvatar(selectedAuthor)} alt={selectedAuthor.name} class="guide-image" class:hand-frame={isHandFrame(selectedAuthor)} />
         </div>
     {/if}
 
@@ -404,7 +474,7 @@
 
     .characters {
         display: flex;
-        gap: 32px;
+        gap: 60px;
         align-items: flex-end;
     }
 
@@ -425,6 +495,12 @@
         width: 200px;
         height: 350px;
         object-fit: contain;
+        object-position: bottom;
+    }
+
+    .character-image.hand-frame {
+        transform: scale(1.345);
+        transform-origin: bottom center;
     }
 
     .character-name {
@@ -445,7 +521,7 @@
     /* Selected character - prominent display */
     .selected-character {
         position: fixed;
-        bottom: 160px;
+        bottom: 90px;
         right: 60px;
         z-index: 50;
         animation: characterEnter 0.5s ease-out;
@@ -456,16 +532,23 @@
         height: 450px;
         object-fit: contain;
         filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.4));
+        transform: scale(1.2);
+        transform-origin: bottom center;
+        transition: transform 0.15s ease;
+    }
+
+    .guide-image.hand-frame {
+        transform: scale(1.5);
     }
 
     @keyframes characterEnter {
         from {
             opacity: 0;
-            transform: translateY(20px) scale(0.95);
+            transform: translateY(20px) scale(1.14);
         }
         to {
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0) scale(1.2);
         }
     }
 
@@ -697,12 +780,13 @@
         }
 
         .characters {
-            gap: 16px;
+            gap: 32px;
         }
 
         .character-image {
             width: 120px;
             height: 220px;
+            object-position: bottom;
         }
 
         .selected-character {
@@ -713,6 +797,8 @@
         .guide-image {
             width: 180px;
             height: 300px;
+            transform: scale(1.2);
+            transform-origin: bottom center;
         }
 
         .dialogue-box {
