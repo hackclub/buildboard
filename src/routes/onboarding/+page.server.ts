@@ -41,5 +41,22 @@ export const load: PageServerLoad = async ({ cookies }) => {
         throw redirect(303, '/home');
     }
 
-    return { user };
+    // Fetch user hours
+    let minutes = 0;
+    try {
+        const hoursResponse = await fetch(getBackendUrl(`/users/${userID}/hours`), {
+            headers: {
+                'Authorization': `${BEARER_TOKEN_BACKEND}`,
+                'x-user-id': userID
+            }
+        });
+        if (hoursResponse.ok) {
+            const hoursData = await hoursResponse.json();
+            minutes = hoursData.minutes ?? 0;
+        }
+    } catch (error) {
+        console.error('Failed to fetch user hours:', error);
+    }
+
+    return { user, minutes };
 };

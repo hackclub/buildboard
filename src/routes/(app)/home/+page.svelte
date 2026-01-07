@@ -2,6 +2,7 @@
     import type { PageData } from "./$types";
     import TaskChecklist from "$lib/components/TaskChecklist.svelte";
     import VisibilityMeter from "$lib/components/VisibilityMeter.svelte";
+    import ProgressionDisplay from "$lib/components/ProgressionDisplay.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -93,6 +94,11 @@
     <!-- Visibility Meter -->
     <div class="visibility-section">
         <VisibilityMeter visibility={data.visibility} hasProjects={(data.projects?.length || 0) > 0} projectId={mainProject?.project_id} />
+    </div>
+
+    <!-- Progression Display -->
+    <div class="progression-section mt-7">
+        <ProgressionDisplay minutes={data.minutes} />
     </div>
 
     <!-- Main Grid -->
@@ -258,6 +264,10 @@
         color: var(--bb-text-muted);
         margin: 0;
         font-size: 0.95rem;
+    }
+
+    .progression-section {
+        margin-bottom: 1.5rem;
     }
 
     /* Stats Bar */

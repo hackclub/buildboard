@@ -90,6 +90,23 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         console.error('Failed to fetch projects:', e);
     }
 
+    // Fetch user hours
+    let minutes = 0;
+    try {
+        const hoursResponse = await fetch(getBackendUrl(`/users/${userID}/hours`), {
+            headers: {
+                'Authorization': `${BEARER_TOKEN_BACKEND}`,
+                'x-user-id': userID
+            }
+        });
+        if (hoursResponse.ok) {
+            const hoursData = await hoursResponse.json();
+            minutes = hoursData.minutes ?? 0;
+        }
+    } catch (error) {
+        console.error('Failed to fetch user hours:', error);
+    }
+
     // Fetch visibility for main project (or show Hidden if no projects)
     let visibility: any = {
         current_level: 1,
@@ -131,6 +148,7 @@ export const load: LayoutServerLoad = async ({ cookies, locals, url }) => {
         setupStatus,
         projects,
         visibility,
+        minutes,
         isReviewer: hasRole(user, 'reviewer') || hasRole(user, 'admin'),
         isAdmin: hasRole(user, 'admin'),
     };
