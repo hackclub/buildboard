@@ -16,9 +16,9 @@
     let section9 = $derived(minutes >= 4000);
 
     let achieved1 = $derived(section1);
-    let achieved2 = $derived(section2 === section3 === true);
+    let achieved2 = $derived((section2 && section3));
     let achieved3 = $derived(section4);
-    let achieved4 = $derived(section5 === section6 === section7 === true) ;
+    let achieved4 = $derived((section5 && section6 && section7));
     let achieved5 = $derived(section8);
 
 
@@ -42,7 +42,7 @@
     <div class={ section9 ? "absolute bg-[#D68D4B] z-0 top-[67%] left-[65.25%] w-84 h-11" : "absolute bg-red-500 z-0 top-[67%] left-[65.25%] w-84 h-11"}></div><!-- Sect 9-->
     <div class={ achieved1 ? "absolute bg-white z-20 top-[1%] left-[34%] w-50 h-35 rounded-full border-6 border-[#D68D4B]" : "absolute bg-white z-20 top-[1%] left-[34%] w-50 h-35 rounded-full border-2 border-red-500"}></div>
     <div class={achieved3 ? "absolute bg-[#0E1014] z-20 top-[32%] left-[32%] w-50 h-35 rounded-full border-6 border-[#D68D4B]" : "absolute bg-[#0E1014] z-20 top-[32%] left-[32%] w-50 h-35 rounded-full border-3 border-red-500"}></div>
-    <div class={ achieved2 ? "absolute bg-[#1B1D21] z-20 top-[32%] left-[72%] w-50 h-35 rounded-full border-4 border-[#D68D4B]" : "absolute bg-[#1B1D21] z-20 top-[32%] left-[72%] w-50 h-35 rounded-full border-3 border-red-500"}></div>
+    <div class={achieved2 ? "absolute bg-[#1B1D21] z-20 top-[32%] left-[72%] w-50 h-35 rounded-full border-4 border-[#D68D4B]" : "absolute bg-[#1B1D21] z-20 top-[32%] left-[72%] w-50 h-35 rounded-full border-3 border-red-500"}></div>
     <div class={achieved5 ? "absolute bg-[#F6F6EE] z-20 top-[58%] left-[60%] w-50 h-35 rounded-full border-9 border-[#ED702C]" : "absolute bg-[#F6F6EE] z-20 top-[58%] left-[60%] w-50 h-35 rounded-full border-3 border-red-500"}></div>
     <div class={achieved4 ? "absolute bg-[#858582] z-20 top-[58%] left-[20%] w-35 h-35 rounded-full border-5 border-[#D68D4B]" : "absolute bg-[#858582] z-20 top-[58%] left-[20%] w-35 h-35 rounded-full border-3 border-red-500"}></div>
     <img src="/newsletter.png" alt="Newsletter" class="absolute z-30 top-[3.5%] left-[38.5%] w-28" />
