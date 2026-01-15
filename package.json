@@ -27,7 +27,7 @@
 	},
 	"dependencies": {
 		"@hackclub/icons": "^0.0.15",
-		"@sveltejs/adapter-node": "^5.4.0",
+		"@sveltejs/adapter-node": "^5.5.1",
 		"@types/dompurify": "^3.0.5",
 		"@unleash/proxy-client-svelte": "^0.4.3",
 		"chart.js": "^4.5.1",
