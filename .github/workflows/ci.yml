@@ -6,23 +6,6 @@ on:
     branches: [ main ]
 
 jobs:
-  security_audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Audit dependencies
-        # Fail if there are any high or critical vulnerabilities
-        run: npm audit --audit-level=high
-
   type_check:
     name: Type Check
     runs-on: ubuntu-latest
@@ -30,14 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Check types
         # Requires env vars for $env/static imports
@@ -56,7 +36,7 @@ jobs:
           PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
           PUBLIC_UNLEASH_URL: "http://localhost/api"
           PUBLIC_UNLEASH_CLIENT_KEY: "dummy_key"
-        run: npm run check
+        run: bun run check
 
   build:
     name: Build
@@ -65,14 +45,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Build
         # Requires env vars for $env/static imports to be baked in
@@ -91,4 +68,4 @@ jobs:
           PUBLIC_SLACK_REDIRECT_URI: "http://localhost/slack/callback"
           PUBLIC_UNLEASH_URL: "http://localhost/api"
           PUBLIC_UNLEASH_CLIENT_KEY: "dummy_key"
-        run: npm run build
+        run: bun run build

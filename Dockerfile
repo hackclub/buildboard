@@ -1,13 +1,13 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package.json bun.lock* ./
 
 # Install dependencies
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -45,10 +45,7 @@ ENV PUBLIC_UNLEASH_URL=$PUBLIC_UNLEASH_URL
 ENV PUBLIC_UNLEASH_CLIENT_KEY=$PUBLIC_UNLEASH_CLIENT_KEY
 
 # Build the application
-RUN npm run build
-
-# Prune dev dependencies
-RUN npm prune --production
+RUN bun run build
 
 # Production stage
 FROM node:20-alpine
